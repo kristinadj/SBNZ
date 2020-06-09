@@ -11,6 +11,7 @@ import sbz.cardiagnosticbe.dto.FailureDTO;
 import sbz.cardiagnosticbe.model.drools.FailureList;
 import sbz.cardiagnosticbe.model.Failure;
 import sbz.cardiagnosticbe.model.Symptom;
+import sbz.cardiagnosticbe.model.drools.VisibleSymptoms;
 import sbz.cardiagnosticbe.model.enums.CarState;
 import sbz.cardiagnosticbe.repository.FailureRepository;
 import sbz.cardiagnosticbe.repository.SymptomRepository;
@@ -84,6 +85,29 @@ public class FailureService {
 
         kieSession.getAgenda().getAgendaGroup("failure-by-dtc").setFocus();
         logger.info("Filtering failures by dtc - fired: " + kieSession.fireAllRules());
+
+        kieSession.dispose();
+        return resultFailures.getFailures();
+    }
+
+    public List<Failure> getPossibleFailures(List<Symptom> symptoms, CarState carState) {
+        FailureList resultFailures = new FailureList();
+        resultFailures.setFailures(new ArrayList<>());
+        VisibleSymptoms visibleSymptoms = new VisibleSymptoms();
+        visibleSymptoms.setSymptoms(symptoms);
+        visibleSymptoms.setCarState(carState);
+        List<Failure> allFailures = this.failureRepository.findAll();
+
+        KieSession kieSession = kieContainer.newKieSession();
+        kieSession.insert(resultFailures);
+        kieSession.insert(symptoms);
+
+        for (Failure f: allFailures) {
+            kieSession.insert(f);
+        }
+
+        kieSession.getAgenda().getAgendaGroup("detect-failure").setFocus();
+        logger.info("Detecting failures by - fired: " + kieSession.fireAllRules());
 
         kieSession.dispose();
         return resultFailures.getFailures();
