@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import sbz.cardiagnosticbe.dto.TSingIn;
+import sbz.cardiagnosticbe.dto.SingInDTO;
 import sbz.cardiagnosticbe.model.User;
 import sbz.cardiagnosticbe.security.TokenUtils;
 import sbz.cardiagnosticbe.service.CustomUserDetailsService;
@@ -42,7 +42,7 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<String> signIn(@RequestBody TSingIn signInReq) {
+    public ResponseEntity<String> signIn(@RequestBody SingInDTO signInReq) {
         try {
             User user = userService.findByUsername(signInReq.getUsername());
 

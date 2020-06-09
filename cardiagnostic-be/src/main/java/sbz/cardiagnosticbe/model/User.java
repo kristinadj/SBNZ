@@ -1,19 +1,12 @@
 package sbz.cardiagnosticbe.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import sbz.cardiagnosticbe.model.enums.Authority;
 
 import javax.persistence.*;
 import java.util.Set;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 public class User {
-
-    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
@@ -28,4 +21,47 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private Authority authority;
+
+    public User() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Set<DetectedFailure> getDetectedFailures() {
+        return detectedFailures;
+    }
+
+    public void setDetectedFailures(Set<DetectedFailure> detectedFailures) {
+        this.detectedFailures = detectedFailures;
+    }
+
+    public Authority getAuthority() {
+        return authority;
+    }
+
+    public void setAuthority(Authority authority) {
+        this.authority = authority;
+    }
 }

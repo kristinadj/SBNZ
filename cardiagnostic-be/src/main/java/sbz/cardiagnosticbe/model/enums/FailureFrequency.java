@@ -1,4 +1,4 @@
-package sbz.cardiagnosticbe.model;
+package sbz.cardiagnosticbe.model.enums;
 
 public enum FailureFrequency {
     LOW, MEDIUM, HIGH
