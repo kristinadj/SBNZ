@@ -1,0 +1,76 @@
+package sbnz.integracija;
+
+import sbz.cardiagnosticbe.dto.TFailure;
+import sbz.cardiagnosticbe.model.VehiclePart;
+
+rule "dtcFormatRule 1"
+    when
+        $f: TFailure(vehiclePart == VehiclePart.POWERTRAIN && !isManufacturerSpecific)
+    then
+        String dtcCode = "P0" + $f.getVehicleSubsystem();
+        $f.setDtcCode(dtcCode);
+        update($f)
+end
+
+rule "dtcFormatRule 2"
+    when
+        $f: TFailure(vehiclePart == VehiclePart.BODY && !isManufacturerSpecific)
+    then
+        String dtcCode = "B0" + $f.getVehicleSubsystem();
+        $f.setDtcCode(dtcCode);
+        update($f)
+end
+
+rule "dtcFormatRule 3"
+    when
+        $f: TFailure(vehiclePart == VehiclePart.NETWORK_VEHICLE_INTEGRATION && !isManufacturerSpecific)
+    then
+        String dtcCode = "U0" + $f.getVehicleSubsystem();
+        $f.setDtcCode(dtcCode);
+        update($f)
+end
+
+rule "dtcFormatRule 4"
+    when
+        $f: TFailure(vehiclePart == VehiclePart.CHASIS && !isManufacturerSpecific)
+    then
+        String dtcCode = "C0" + $f.getVehicleSubsystem();
+        $f.setDtcCode(dtcCode);
+        update($f)
+end
+
+rule "dtcFormatRule 5"
+    when
+        $f: TFailure(vehiclePart == VehiclePart.POWERTRAIN && isManufacturerSpecific)
+    then
+        String dtcCode = "P1" + $f.getVehicleSubsystem();
+        $f.setDtcCode(dtcCode);
+        update($f)
+end
+
+rule "dtcFormatRule 6"
+    when
+        $f: TFailure(vehiclePart == VehiclePart.BODY && isManufacturerSpecific)
+    then
+        String dtcCode = "B1" + $f.getVehicleSubsystem();
+        $f.setDtcCode(dtcCode);
+        update($f)
+end
+
+rule "dtcFormatRule 7"
+    when
+        $f: TFailure(vehiclePart == VehiclePart.NETWORK_VEHICLE_INTEGRATION && isManufacturerSpecific)
+    then
+        String dtcCode = "U1" + $f.getVehicleSubsystem();
+        $f.setDtcCode(dtcCode);
+        update($f)
+end
+
+rule "dtcFormatRule 8"
+    when
+        $f: TFailure(vehiclePart == VehiclePart.CHASIS && isManufacturerSpecific)
+    then
+        String dtcCode = "C1" + $f.getVehicleSubsystem();
+        $f.setDtcCode(dtcCode);
+        update($f)
+end

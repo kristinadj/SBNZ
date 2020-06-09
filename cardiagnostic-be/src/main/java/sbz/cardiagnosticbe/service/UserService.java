@@ -3,11 +3,11 @@ package sbz.cardiagnosticbe.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import sbz.cardiagnosticbe.model.User;
 import sbz.cardiagnosticbe.repository.UserRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -16,18 +16,23 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public User findByUsername(String username) throws UsernameNotFoundException {
-        User u = userRepository.findByUsername(username);
-        return u;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
-    public Optional<User> findById(Long id) throws AccessDeniedException {
-        Optional<User> u = userRepository.findById(id);
-        return u;
+    public User findById(Long id) throws AccessDeniedException {
+        return userRepository.findById(id).orElse(null);
     }
 
-    public List<User> findAll() throws AccessDeniedException {
-        List<User> result = userRepository.findAll();
-        return result;
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
+    public void register(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        this.save(user);
     }
 }

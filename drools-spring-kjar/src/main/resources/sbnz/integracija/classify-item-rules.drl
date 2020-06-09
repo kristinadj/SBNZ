@@ -1,0 +1,10 @@
+package sbnz.integracija;
+
+import sbz.cardiagnosticbe.model.User;
+
+rule "Test rule"
+    when
+        $u: User(username == "test")
+    then
+        System.out.println("Radi!");
+end

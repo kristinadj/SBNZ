@@ -15,10 +15,10 @@ import java.util.Date;
 @Component
 public class TokenUtils {
 
-    @Value("backend")
+    @Value("acr-diagnostic-backend")
     private String APP_NAME;
 
-    @Value("secret")
+    @Value("changeme")
     public String SECRET;
 
     @Value("30000")

@@ -7,7 +7,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import sbz.cardiagnosticbe.model.Authority;
 import sbz.cardiagnosticbe.model.User;
 import sbz.cardiagnosticbe.repository.UserRepository;
 
@@ -25,19 +24,15 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username);
         if(user == null){
             throw new UsernameNotFoundException(String.format("No user found with username '%s'.", username));
-        } else{
-            List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-
-            for (GrantedAuthority grantedAuthority : user.getAuthorities()) {
-                Authority authority = (Authority) grantedAuthority;
-                grantedAuthorities.add(new SimpleGrantedAuthority(authority.getName()));
-            }
-
-            return new org.springframework.security.core.userdetails.User(
-                    user.getUsername(),
-                    user.getPassword(),
-                    grantedAuthorities
-            );
         }
+
+        List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+        grantedAuthorities.add(new SimpleGrantedAuthority(user.getAuthority().toString()));
+
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                grantedAuthorities
+        );
     }
 }

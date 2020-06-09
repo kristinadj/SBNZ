@@ -5,32 +5,31 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class DetectedFailure {
+public class DetectedFailure implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     private Failure failure;
 
-    @ManyToOne
-    private Car car;
-    
-    @Temporal(TemporalType.DATE)
-    @Column(nullable=false)
-    private List<Date> diagnoseHistory;
+    @ElementCollection
+    @Temporal(TemporalType.TIMESTAMP)
+    private Set<Date> diagnoseHistory;
 
     @Enumerated(EnumType.STRING)
     private FailureFrequency failureFrequency;
 
-    private Boolean isReplaced;
+    private boolean isResolved; // failure was long time ago or resolved by mechanic
 }
