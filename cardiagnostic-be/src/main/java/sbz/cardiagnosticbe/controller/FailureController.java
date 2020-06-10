@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.*;
 import sbz.cardiagnosticbe.dto.DtcParamsDTO;
 import sbz.cardiagnosticbe.dto.FailureDTO;
 import sbz.cardiagnosticbe.model.Failure;
-import sbz.cardiagnosticbe.model.Symptom;
+import sbz.cardiagnosticbe.model.Indicator;
 import sbz.cardiagnosticbe.model.enums.CarState;
 import sbz.cardiagnosticbe.service.FailureService;
-import sbz.cardiagnosticbe.service.SymptomService;
+import sbz.cardiagnosticbe.service.IndicatorService;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public class FailureController {
     private FailureService failureService;
 
     @Autowired
-    private SymptomService symptomService;
+    private IndicatorService indicatorService;
 
     @RequestMapping(
             method = RequestMethod.POST,
@@ -44,15 +44,22 @@ public class FailureController {
             produces = "application/json"
     )
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<List<Failure>> getPossibleFailure(@RequestBody List<Long> symptomsIds, @PathVariable int carStateId) {
+    public ResponseEntity<List<Failure>> getPossibleFailure(@RequestBody List<Long> indicatorsIds, @PathVariable int carStateId) {
         CarState carState = CarState.fromInteger(carStateId);
-        List<Symptom> symptoms = new ArrayList<>();
+        List<Indicator> indicators = new ArrayList<>();
 
-        for (Long id: symptomsIds) {
-            symptoms.add(symptomService.getById(id));
+        for (Long id: indicatorsIds) {
+            Indicator indicator = indicatorService.getById(id);
+
+            if (indicator != null) {
+                indicators.add(indicator);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
         }
 
-        List<Failure> result = failureService.getPossibleFailures(symptoms, carState);
+        List<Failure> result = failureService.getPossibleFailures(indicators, carState);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

@@ -21,8 +21,8 @@ public class FailureDTO {
     @Max(2)
     public int carState;
 
-    @NotEmpty(message = "Symptoms list can't be empty")
-    public Set<String> symptoms;
+    @NotEmpty(message = "Indicators list can't be empty")
+    public Set<String> indicators;
 
     @NotBlank(message = "Failure name can't be blank")
     public String failureName;
@@ -35,12 +35,12 @@ public class FailureDTO {
     public FailureDTO() {
     }
 
-    public FailureDTO(@NotNull(message = "Must have vehicle type") VehiclePart vehiclePart, boolean isManufacturerSpecific, @Min(0) @Max(7) int vehicleSubsystem, @Min(0) @Max(2) int carState, @NotEmpty(message = "Symptoms list can't be empty") Set<String> symptoms, @NotBlank(message = "Failure name can't be blank") String failureName, @NotBlank(message = "Failure name can't be blank") String repairSolution, String dtcCode) {
+    public FailureDTO(@NotNull(message = "Must have vehicle type") VehiclePart vehiclePart, boolean isManufacturerSpecific, @Min(0) @Max(7) int vehicleSubsystem, @Min(0) @Max(2) int carState, @NotEmpty(message = "Indicators list can't be empty") Set<String> indicators, @NotBlank(message = "Failure name can't be blank") String failureName, @NotBlank(message = "Failure name can't be blank") String repairSolution, String dtcCode) {
         this.vehiclePart = vehiclePart;
         this.isManufacturerSpecific = isManufacturerSpecific;
         this.vehicleSubsystem = vehicleSubsystem;
         this.carState = carState;
-        this.symptoms = symptoms;
+        this.indicators = indicators;
         this.failureName = failureName;
         this.repairSolution = repairSolution;
         this.dtcCode = dtcCode;
@@ -78,12 +78,12 @@ public class FailureDTO {
         this.carState = carState;
     }
 
-    public Set<String> getSymptoms() {
-        return symptoms;
+    public Set<String> getIndicators() {
+        return indicators;
     }
 
-    public void setSymptoms(Set<String> symptoms) {
-        this.symptoms = symptoms;
+    public void setIndicators(Set<String> indicators) {
+        this.indicators = indicators;
     }
 
     public String getFailureName() {

@@ -1,9 +1,9 @@
 package sbnz.integracija;
 
-import sbz.cardiagnosticbe.model.drools.VisibleSymptoms;
+import sbz.cardiagnosticbe.model.drools.VisibleIndicators;
 import sbz.cardiagnosticbe.model.drools.FailureList;
 import sbz.cardiagnosticbe.model.Failure;
-import sbz.cardiagnosticbe.model.Symptom;
+import sbz.cardiagnosticbe.model.Indicator;
 
 import java.util.Set;
 import java.util.List;
@@ -12,21 +12,21 @@ rule "Detect failures"
     agenda-group "detect-failure"
     when
         $result: FailureList();
-        $s: VisibleSymptoms($visibleSymptoms: symptoms, $userCarState: carState);
-        $f: Failure($failureSymptoms: symptoms, carState == $userCarState)
-        $symptomsIds: List() from accumulate (
-            Symptom($id: id) from $visibleSymptoms, collectList($id)
+        $s: VisibleIndicators($visibleIndicators: indicators, $userCarState: carState);
+        $f: Failure($failureIndicators: indicators, carState == $userCarState)
+        $visibleIndicatorsIds: Set() from accumulate (
+            Indicator($id: id) from $visibleIndicators, collectSet($id)
         )
-        checkFailureSymptoms($failureSymptoms, $symptomsIds;);
+        checkFailureIndicators($failureIndicators, $visibleIndicatorsIds;);
     then
         $result.getFailures().add($f);
 end
 
-query checkFailureSymptoms(Set failureSymptoms, List visibleSymptomsIds)
-    $cnt: Number(intValue == failureSymptoms.size()) from accumulate(
-        Symptom($id: id, id memberOf visibleSymptomsIds) from failureSymptoms,
-        init(int num = 0;),
-        action(num += 1;),
-        result(num)
+query checkFailureIndicators(Set failureAllIndicators, Set visibleIndicatorsIds)
+    $cnt: Number(intValue == failureAllIndicators.size()) from accumulate(
+        Indicator($id: id, id memberOf visibleIndicatorsIds) from failureAllIndicators,
+        init(int count = 0;),
+        action(count += 1;),
+        result(count)
     )
 end

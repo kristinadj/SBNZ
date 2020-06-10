@@ -8,13 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sbz.cardiagnosticbe.dto.DtcParamsDTO;
 import sbz.cardiagnosticbe.dto.FailureDTO;
+import sbz.cardiagnosticbe.model.Indicator;
 import sbz.cardiagnosticbe.model.drools.FailureList;
 import sbz.cardiagnosticbe.model.Failure;
-import sbz.cardiagnosticbe.model.Symptom;
-import sbz.cardiagnosticbe.model.drools.VisibleSymptoms;
+import sbz.cardiagnosticbe.model.drools.VisibleIndicators;
 import sbz.cardiagnosticbe.model.enums.CarState;
 import sbz.cardiagnosticbe.repository.FailureRepository;
-import sbz.cardiagnosticbe.repository.SymptomRepository;
+import sbz.cardiagnosticbe.repository.IndicatorRepository;
 
 import java.util.*;
 
@@ -25,7 +25,7 @@ public class FailureService {
     private FailureRepository failureRepository;
 
     @Autowired
-    private SymptomRepository symptomRepository;
+    private IndicatorRepository indicatorRepository;
 
     private final KieContainer kieContainer;
 
@@ -50,20 +50,20 @@ public class FailureService {
         failure.setRepairSolution(failureReq.getRepairSolution());
         failure.setDTC(failureReq.getDtcCode() + failureCnt);
 
-        HashSet<Symptom> symptoms = new HashSet<>();
-        for (String symptomName: failureReq.getSymptoms()) {
-            Symptom symptom = symptomRepository.findBySymptomName(symptomName);
+        HashSet<Indicator> indicators = new HashSet<>();
+        for (String indicatorName: failureReq.getIndicators()) {
+            Indicator indicator = indicatorRepository.findByIndicatorName(indicatorName);
 
-            if (symptom == null) {
-                symptom = new Symptom();
-                symptom.setSymptomName(symptomName);
+            if (indicator == null) {
+                indicator = new Indicator();
+                indicator.setIndicatorName(indicatorName);
 
-                symptomRepository.save(symptom);
+                indicatorRepository.save(indicator);
             }
-            symptoms.add(symptom);
+            indicators.add(indicator);
         }
 
-        failure.setSymptoms(symptoms);
+        failure.setIndicators(indicators);
         failureRepository.save(failure);
 
         kieSession.dispose();
@@ -90,17 +90,17 @@ public class FailureService {
         return resultFailures.getFailures();
     }
 
-    public List<Failure> getPossibleFailures(List<Symptom> symptoms, CarState carState) {
+    public List<Failure> getPossibleFailures(List<Indicator> indicators, CarState carState) {
         FailureList resultFailures = new FailureList();
         resultFailures.setFailures(new ArrayList<>());
-        VisibleSymptoms visibleSymptoms = new VisibleSymptoms();
-        visibleSymptoms.setSymptoms(symptoms);
-        visibleSymptoms.setCarState(carState);
+        VisibleIndicators visibleIndicators = new VisibleIndicators();
+        visibleIndicators.setIndicators(indicators);
+        visibleIndicators.setCarState(carState);
         List<Failure> allFailures = this.failureRepository.findAll();
 
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.insert(resultFailures);
-        kieSession.insert(symptoms);
+        kieSession.insert(indicators);
 
         for (Failure f: allFailures) {
             kieSession.insert(f);

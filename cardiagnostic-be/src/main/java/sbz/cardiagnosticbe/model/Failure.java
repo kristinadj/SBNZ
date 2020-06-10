@@ -15,7 +15,7 @@ public class Failure {
     private String DTC;
 
     @ManyToMany
-    private Set<Symptom> symptoms;
+    private Set<Indicator> indicators;
 
     @Enumerated(EnumType.STRING)
     private CarState carState;
@@ -43,12 +43,12 @@ public class Failure {
         this.DTC = DTC;
     }
 
-    public Set<Symptom> getSymptoms() {
-        return symptoms;
+    public Set<Indicator> getIndicators() {
+        return indicators;
     }
 
-    public void setSymptoms(Set<Symptom> symptoms) {
-        this.symptoms = symptoms;
+    public void setIndicators(Set<Indicator> indicators) {
+        this.indicators = indicators;
     }
 
     public CarState getCarState() {
@@ -80,7 +80,7 @@ public class Failure {
         return "Failure{" +
                 "id=" + id +
                 ", DTC='" + DTC + '\'' +
-                ", symptoms=" + symptoms +
+                ", symptoms=" + indicators +
                 ", carState=" + carState +
                 ", failureName='" + failureName + '\'' +
                 ", repairSolution='" + repairSolution + '\'' +
