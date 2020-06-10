@@ -3,6 +3,7 @@ package sbz.cardiagnosticbe.model;
 import sbz.cardiagnosticbe.model.enums.CarState;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -15,7 +16,7 @@ public class Failure {
     private String DTC;
 
     @ManyToMany
-    private Set<Indicator> indicators;
+    private Set<Indicator> indicators = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     private CarState carState;
@@ -80,7 +81,7 @@ public class Failure {
         return "Failure{" +
                 "id=" + id +
                 ", DTC='" + DTC + '\'' +
-                ", symptoms=" + indicators +
+                ", indicators=" + indicators +
                 ", carState=" + carState +
                 ", failureName='" + failureName + '\'' +
                 ", repairSolution='" + repairSolution + '\'' +

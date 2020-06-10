@@ -90,7 +90,7 @@ public class FailureService {
         return resultFailures.getFailures();
     }
 
-    public List<Failure> getPossibleFailures(List<Indicator> indicators, CarState carState) {
+    public List<Failure> getPossibleFailures(Set<Indicator> indicators, CarState carState) {
         FailureList resultFailures = new FailureList();
         resultFailures.setFailures(new ArrayList<>());
         VisibleIndicators visibleIndicators = new VisibleIndicators();
@@ -100,7 +100,7 @@ public class FailureService {
 
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.insert(resultFailures);
-        kieSession.insert(indicators);
+        kieSession.insert(visibleIndicators);
 
         for (Failure f: allFailures) {
             kieSession.insert(f);

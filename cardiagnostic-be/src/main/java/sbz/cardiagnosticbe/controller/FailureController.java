@@ -15,7 +15,9 @@ import sbz.cardiagnosticbe.service.IndicatorService;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping(value = "/api/failure")
@@ -46,7 +48,7 @@ public class FailureController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<Failure>> getPossibleFailure(@RequestBody List<Long> indicatorsIds, @PathVariable int carStateId) {
         CarState carState = CarState.fromInteger(carStateId);
-        List<Indicator> indicators = new ArrayList<>();
+        Set<Indicator> indicators = new HashSet<>();
 
         for (Long id: indicatorsIds) {
             Indicator indicator = indicatorService.getById(id);

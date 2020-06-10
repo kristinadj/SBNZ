@@ -12,19 +12,16 @@ rule "Detect failures"
     agenda-group "detect-failure"
     when
         $result: FailureList();
-        $s: VisibleIndicators($visibleIndicators: indicators, $userCarState: carState);
-        $f: Failure($failureIndicators: indicators, carState == $userCarState)
-        $visibleIndicatorsIds: Set() from accumulate (
-            Indicator($id: id) from $visibleIndicators, collectSet($id)
-        )
-        checkFailureIndicators($failureIndicators, $visibleIndicatorsIds;);
+        $vi: VisibleIndicators($visibleIndicators: indicators, $carState: carState);
+        $f: Failure($failureIndicators: indicators, carState == $carState);
+        checkFailureIndicators($failureIndicators, $visibleIndicators;);
     then
         $result.getFailures().add($f);
 end
 
-query checkFailureIndicators(Set failureAllIndicators, Set visibleIndicatorsIds)
-    $cnt: Number(intValue == failureAllIndicators.size()) from accumulate(
-        Indicator($id: id, id memberOf visibleIndicatorsIds) from failureAllIndicators,
+query checkFailureIndicators(Set failureAllIndicators, Set visibleIndicators)
+    $cnt := Number(intValue == failureAllIndicators.size()) from accumulate(
+        Object(this memberOf failureAllIndicators) from visibleIndicators,
         init(int count = 0;),
         action(count += 1;),
         result(count)
