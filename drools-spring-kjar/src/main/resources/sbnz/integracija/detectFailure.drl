@@ -21,9 +21,7 @@ end
 
 query checkFailureIndicators(Set failureAllIndicators, Set visibleIndicators)
     $cnt := Number(intValue == failureAllIndicators.size()) from accumulate(
-        Object(this memberOf failureAllIndicators) from visibleIndicators,
-        init(int count = 0;),
-        action(count += 1;),
-        result(count)
+        Object($x: this, this memberOf failureAllIndicators) from visibleIndicators,
+        count($x)
     )
 end
