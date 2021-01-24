@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import sbz.cardiagnosticbe.dto.TDtcParams;
-import sbz.cardiagnosticbe.dto.TFailure;
+import sbz.cardiagnosticbe.dto.failure.TFailure;
 import sbz.cardiagnosticbe.model.Failure;
 import sbz.cardiagnosticbe.model.Indicator;
 import sbz.cardiagnosticbe.model.enums.CarState;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping(value = "/failure")
+@RequestMapping(value = "/api/failure")
 public class FailureController {
 
     @Autowired
@@ -32,7 +32,7 @@ public class FailureController {
             method = RequestMethod.POST,
             consumes = "application/json"
     )
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('EXPERT')")
     public ResponseEntity<Object> addFailure(@Valid @RequestBody TFailure failureReq) {
         failureService.addFailure(failureReq);
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -44,7 +44,7 @@ public class FailureController {
             consumes = "application/json",
             produces = "application/json"
     )
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('EXPERT')")
     public ResponseEntity<List<Failure>> getPossibleFailure(@RequestBody List<Long> indicatorsIds, @PathVariable int carStateId) {
         CarState carState = CarState.fromInteger(carStateId);
         Set<Indicator> indicators = new HashSet<>();
@@ -70,7 +70,7 @@ public class FailureController {
             consumes = "application/json",
             produces = "application/json"
     )
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('EXPERT')")
     public ResponseEntity<List<Failure>> getFailureFromDtc(@Valid @RequestBody TDtcParams dtcReq) {
         List<Failure> result = failureService.getFailuresByDtc(dtcReq);
         return new ResponseEntity<>(result, HttpStatus.OK);

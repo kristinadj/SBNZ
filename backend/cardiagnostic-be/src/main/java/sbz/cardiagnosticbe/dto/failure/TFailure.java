@@ -1,4 +1,4 @@
-package sbz.cardiagnosticbe.dto;
+package sbz.cardiagnosticbe.dto.failure;
 
 import lombok.*;
 import sbz.cardiagnosticbe.model.enums.VehiclePart;
@@ -32,8 +32,7 @@ public class TFailure {
 
     public String dtcCode;
 
-    public TFailure() {
-    }
+    public TFailure() {}
 
     public TFailure(@NotNull(message = "Must have vehicle type") VehiclePart vehiclePart, boolean isManufacturerSpecific, @Min(0) @Max(7) int vehicleSubsystem, @Min(0) @Max(2) int carState, @NotEmpty(message = "Indicators list can't be empty") Set<String> indicators, @NotBlank(message = "Failure name can't be blank") String failureName, @NotBlank(message = "Failure name can't be blank") String repairSolution, String dtcCode) {
         this.vehiclePart = vehiclePart;

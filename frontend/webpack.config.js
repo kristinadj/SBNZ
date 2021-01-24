@@ -1,4 +1,6 @@
-var HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 module.exports = {
     mode: 'development',
@@ -9,25 +11,31 @@ module.exports = {
         rules: [
             {
                 test: /\.vue?$/,
-                exclude: /(node_modules)/,
-                use: 'vue-loader'
+                loader: 'vue-loader'
             },
             {
                 test: /\.js?$/,
-                exclude: /(node_modules)/,
-                use: 'babel-loader'
+                loader: 'babel-loader'
             }
         ]
     },
-    plugins: [new HtmlWebpackPlugin({
-        template: './src/index.html'
-    })],
+    resolve: {
+        extensions: ['.js', '.vue'],
+        alias: {
+            '@': path.resolve(__dirname, 'src/'),
+        }
+    },
+    plugins: [
+        new VueLoaderPlugin(),
+        new HtmlWebpackPlugin({ template: './src/index.html' })
+    ],
     devServer: {
-        historyApiFallback: true
+        historyApiFallback: true,
+        port: 4200
     },
     externals: {
         config: JSON.stringify({
-            apiUrl: 'http://localhost:8081/api'
+            apiUrl: 'http://localhost:8080/api'
         })
     }
 }

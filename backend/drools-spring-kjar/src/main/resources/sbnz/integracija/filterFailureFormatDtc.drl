@@ -1,13 +1,13 @@
 package sbnz.integracija;
 
-import sbz.cardiagnosticbe.dto.DtcParamsDTO;
+import sbz.cardiagnosticbe.dto.TDtcParams;
 import sbz.cardiagnosticbe.model.enums.VehiclePart;
 import sbz.cardiagnosticbe.model.drools.Dtc;
 
 rule "Filtering failure by DTC - formating DTC code  1"
     agenda-group "failure-by-dtc"
     when
-        $f: DtcParamsDTO(vehiclePart == VehiclePart.POWERTRAIN && isManufacturerSpecific == false)
+        $f: TDtcParams(vehiclePart == VehiclePart.POWERTRAIN && isManufacturerSpecific == false)
     then
         Dtc dtc = new Dtc();
         dtc.setDtc("P0" + $f.getVehicleSubsystem());
@@ -18,7 +18,7 @@ end
 rule "Filtering failure by DTC - formating DTC code 2"
     agenda-group "failure-by-dtc"
     when
-        $f: DtcParamsDTO(vehiclePart == VehiclePart.BODY && isManufacturerSpecific == false)
+        $f: TDtcParams(vehiclePart == VehiclePart.BODY && isManufacturerSpecific == false)
     then
         Dtc dtc = new Dtc();
         dtc.setDtc("B0" + $f.getVehicleSubsystem());
@@ -29,7 +29,7 @@ end
 rule "Filtering failure by DTC - formating DTC code 3"
     agenda-group "failure-by-dtce"
     when
-        $f: DtcParamsDTO(vehiclePart == VehiclePart.NETWORK_VEHICLE_INTEGRATION && isManufacturerSpecific == false)
+        $f: TDtcParams(vehiclePart == VehiclePart.NETWORK_VEHICLE_INTEGRATION && isManufacturerSpecific == false)
     then
         Dtc dtc = new Dtc();
         dtc.setDtc("U0" + $f.getVehicleSubsystem());
@@ -40,7 +40,7 @@ end
 rule "Filtering failure by DTC - formating DTC code 4"
     agenda-group "failure-by-dtc"
     when
-        $f: DtcParamsDTO(vehiclePart == VehiclePart.CHASIS && isManufacturerSpecific == false)
+        $f: TDtcParams(vehiclePart == VehiclePart.CHASIS && isManufacturerSpecific == false)
     then
         Dtc dtc = new Dtc();
         dtc.setDtc("C0" + $f.getVehicleSubsystem());
@@ -51,7 +51,7 @@ end
 rule "Filtering failure by DTC - formating DTC code 5"
     agenda-group "failure-by-dtc"
     when
-        $f: DtcParamsDTO(vehiclePart == VehiclePart.POWERTRAIN && isManufacturerSpecific == true)
+        $f: TDtcParams(vehiclePart == VehiclePart.POWERTRAIN && isManufacturerSpecific == true)
     then
         Dtc dtc = new Dtc();
         dtc.setDtc("P1" + $f.getVehicleSubsystem());
@@ -62,7 +62,7 @@ end
 rule "Filtering failure by DTC - formating DTC code 6"
     agenda-group "failure-by-dtc"
     when
-        $f: DtcParamsDTO(vehiclePart == VehiclePart.BODY && isManufacturerSpecific == true)
+        $f: TDtcParams(vehiclePart == VehiclePart.BODY && isManufacturerSpecific == true)
     then
         Dtc dtc = new Dtc();
         dtc.setDtc("B1" + $f.getVehicleSubsystem());
@@ -73,7 +73,7 @@ end
 rule "Filtering failure by DTC - formating DTC code 7"
     agenda-group "failure-by-dtc"
     when
-        $f: DtcParamsDTO(vehiclePart == VehiclePart.NETWORK_VEHICLE_INTEGRATION && isManufacturerSpecific == true)
+        $f: TDtcParams(vehiclePart == VehiclePart.NETWORK_VEHICLE_INTEGRATION && isManufacturerSpecific == true)
     then
         Dtc dtc = new Dtc();
         dtc.setDtc("U1" + $f.getVehicleSubsystem());
@@ -84,7 +84,7 @@ end
 rule "Filtering failure by DTC - formating DTC code 8"
     agenda-group "failure-by-dtc"
     when
-        $f: DtcParamsDTO(vehiclePart == VehiclePart.CHASIS && isManufacturerSpecific == true)
+        $f: TDtcParams(vehiclePart == VehiclePart.CHASIS && isManufacturerSpecific == true)
     then
         Dtc dtc = new Dtc();
         dtc.setDtc("C1" + $f.getVehicleSubsystem());

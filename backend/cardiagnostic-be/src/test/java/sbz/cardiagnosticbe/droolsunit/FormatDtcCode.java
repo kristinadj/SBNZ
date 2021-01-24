@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
-import sbz.cardiagnosticbe.dto.TFailure;
+import sbz.cardiagnosticbe.dto.failure.TFailure;
 import sbz.cardiagnosticbe.model.enums.CarState;
 import sbz.cardiagnosticbe.model.enums.VehiclePart;
 

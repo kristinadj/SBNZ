@@ -50,7 +50,9 @@ public class UserController {
             authenticationManager.authenticate(token);
             UserDetails details = userDetailsService.loadUserByUsername(signInReq.getUsername());
             String tokenStr = tokenUtils.generateToken(details);
-            TSignInResponse response = new TSignInResponse(signInReq.getUsername(), tokenStr);
+
+            User user = userService.findByUsername(signInReq.getUsername());
+            TSignInResponse response = new TSignInResponse(user.getUsername(), user.getAuthority(), tokenStr);
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception ex) {
@@ -65,8 +67,14 @@ public class UserController {
                 User user = new User();
                 user.setUsername(registerReq.getUsername());
                 user.setPassword(registerReq.getPassword());
-                user.setAuthority(Authority.EXPERT);
+                user.setName(registerReq.getName());
+                user.setLastName(registerReq.getLastName());
 
+                if (registerReq.getIsExpert()) {
+                    user.setAuthority(Authority.EXPERT);
+                } else {
+                    user.setAuthority(Authority.USER);
+                }
                 userService.register(user);
             } else {
                 return new ResponseEntity<>("Username taken", HttpStatus.BAD_REQUEST);

@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sbz.cardiagnosticbe.dto.TDtcParams;
-import sbz.cardiagnosticbe.dto.TFailure;
+import sbz.cardiagnosticbe.dto.failure.TFailure;
 import sbz.cardiagnosticbe.model.Indicator;
 import sbz.cardiagnosticbe.model.drools.FailureList;
 import sbz.cardiagnosticbe.model.Failure;

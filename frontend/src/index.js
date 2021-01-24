@@ -1,15 +1,13 @@
 import Vue from 'vue';
-import VeeValidate from 'vee-validate';
+import Vuelidate from 'vuelidate';
 
-import { store } from './_store';
 import { router } from './_helpers';
 import App from './app/App';
 
-Vue.use(VeeValidate);
+Vue.use(Vuelidate);
 
 new Vue({
     el: '#app',
     router,
-    store,
     render: h => h(App)
 });
