@@ -1,76 +1,69 @@
-/*
 package sbnz.integracija;
 
 import sbz.cardiagnosticbe.model.drools.CurrentDetectedFailure;
 import sbz.cardiagnosticbe.model.db.User;
 import sbz.cardiagnosticbe.model.db.DetectedFailure;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
-*/
-/*
+
+
 rule "Check failure history - not all steps applied"
+    salience 1
     agenda-group "failure-history"
     when
         $currDf: CurrentDetectedFailure(
             $currDetectedFailureId: failure.id,
-            $maxStepCnt: nextRepairStep
+            $maxStepsCnt: nextRepairStep
         )
-        $u: User(
-            $detectedFailures: detectedFailures
-        )
-        Number(intValue == 1) from accumulate(
+        eval($maxStepsCnt != 0)
+        $u: User($detectedFailures: detectedFailures)
+        Number($appliedSteps: intValue > 0) from accumulate(
             DetectedFailure(
-                $f: failure,
-                timestamp.isAfter(LocalDate.now().minusMonths(1)),
-                failure.(
+                $df: this,
+                $df.failure.(
                     id == $currDetectedFailureId
                 ),
-                repairStepApplied.(
-                    $lastApplied: orderNumber,
-                    $lastApplied < $maxStepCnt
-                )
+                $df.timestamp.isAfter(LocalDateTime.now().minusMonths(1))
             ) from $detectedFailures,
-            count($f)
+            count($df)
         )
+        eval(($appliedSteps % $maxStepsCnt) != 0)
     then
-        System.out.println();
-        $currDf.setNextRepairStep($lastApplied + 1);
+        System.out.println("Not all steps applied for failure");
+        $currDf.setNextRepairStep($appliedSteps % $maxStepsCnt);
 end
 
 
-/*
+
 rule "Check failure history - all steps already applied"
+    salience 2
     agenda-group "failure-history"
     when
         $currDf: CurrentDetectedFailure(
             $currDetectedFailureId: failure.id,
-            $maxStepCnt: nextRepairStep
+            $maxStepsCnt: nextRepairStep
         )
-        $u: User(
-            $detectedFailures: detectedFailures
-        )
-       Number(intValue == 1) from accumulate(
+        $u: User($detectedFailures: detectedFailures)
+        Number($appliedSteps: intValue > 0) from accumulate(
             DetectedFailure(
-                $f: this,
-                $f.failure.(
+                $df: this,
+                $df.failure.(
                     id == $currDetectedFailureId
                 ),
-                //timestamp.isAfter(LocalDate.now().minusMonths(1)),
-                repairStepApplied.(
-                    $lastApplied: orderNumber,
-                    $lastApplied >= $maxStepCnt
-                )
+                $df.timestamp.isAfter(LocalDateTime.now().minusMonths(1))
             ) from $detectedFailures,
-            count($f)
+            count($df)
         )
+        eval(($appliedSteps % $maxStepsCnt) == 0)
     then
+        System.out.println("All steps applied for failure");
         $currDf.setNextRepairStep(0);
 end
-*/
 
-/*
+
 rule "Check failure history - first time appearing"
+    salience 3
     agenda-group "failure-history"
     when
         $currDf: CurrentDetectedFailure(
@@ -79,18 +72,17 @@ rule "Check failure history - first time appearing"
         $u: User(
             $detectedFailures: detectedFailures
         )
-        Number(intValue == $detectedFailures.size()) from accumulate(
+        Number(intValue == 0) from accumulate(
             DetectedFailure(
-                $f: this,
-                $f.failure.(
-                    id != $currDetectedFailureId
-                )
+                $df: this,
+                $df.failure.(
+                    id == $currDetectedFailureId
+                ),
+                $df.timestamp.isAfter(LocalDateTime.now().minusMonths(1))
             ) from $detectedFailures,
-            count($f)
+            count($df)
         )
     then
         System.out.println("Failure is appearing for the first time");
         $currDf.setNextRepairStep(0);
 end
-
-*/

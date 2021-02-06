@@ -172,7 +172,6 @@ public class FailureService {
             result = new TDetectedRelatedFailuresProblem(
                     detectedRelatedFailuresProblems.getRelatedFailuresProblems().get(0)
             );
-
         } else {
             kieSession.getAgenda().getAgendaGroup("sort-detected-failures").setFocus();
             PossibleFailuresList sortedFailures = new PossibleFailuresList(new ArrayList<>());
@@ -180,15 +179,13 @@ public class FailureService {
             logger.info("Sorting possible failures - fired: " + kieSession.fireAllRules());
 
             if (sortedFailures.getFailures().size() > 0) {
-                // TODO: Sort ?
-                CurrentDetectedFailure detectedFailure = new CurrentDetectedFailure(sortedFailures.getFailures().get(0).getFailure(), 0);
-                //CurrentDetectedFailure detectedFailure = new CurrentDetectedFailure(sortedFailures.getFailures().get(0).getFailure(),
-                        //sortedFailures.getFailures().get(0).getFailure().getRepairSteps().size());
+                CurrentDetectedFailure detectedFailure = new CurrentDetectedFailure(sortedFailures.getFailures().get(0).getFailure(),
+                        sortedFailures.getFailures().get(0).getFailure().getRepairSteps().size());
 
-                //kieSession.insert(user);
-                //kieSession.insert(detectedFailure);
-                //kieSession.getAgenda().getAgendaGroup("failure-history");
-                //logger.info("Sorting possible failures - fired: " + kieSession.fireAllRules());
+                kieSession.insert(user);
+                kieSession.insert(detectedFailure);
+                kieSession.getAgenda().getAgendaGroup("failure-history").setFocus();
+                logger.info("Check failure history - fired: " + kieSession.fireAllRules());
 
                 // add to user history
                 RepairStep repairStep = detectedFailure.getFailure().getRepairSteps()

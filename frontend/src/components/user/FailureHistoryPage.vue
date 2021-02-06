@@ -17,7 +17,7 @@
                 @change="onSortChange($event)"
                 checked
               />
-              Recently first
+              Recent first
             </label>
             <label
               class="btn btn-outline-secondary"

@@ -26,16 +26,16 @@ rule "Detect possible failures"
             $failureIndicators: indicators
         )
         filter($fid, $failureIndicators, $visibleIndicators, $vehicleModelId, $vehicleProductionYear;)
-        accumulate(
+        Number($matchingIndicators: intValue > 0) from accumulate(
                 Object(
                     $x: this,
                     this memberOf $failureIndicators
                 ) from $visibleIndicators,
-                $matchingIndicators: collectList($x)
+                count($x)
             )
     then
-        System.out.println(String.format("Filtered failure %s - number of matching indicators: %s", $code, $matchingIndicators.size()));
-        PossibleFailure possibleFailure = new PossibleFailure($f, $matchingIndicators.size());
+        System.out.println(String.format("Filtered failure %s - number of matching indicators: %s", $code, $matchingIndicators));
+        PossibleFailure possibleFailure = new PossibleFailure($f, $matchingIndicators);
         $possibleFailures.getFailures().add(possibleFailure);
 
         insert(possibleFailure);
@@ -43,20 +43,7 @@ rule "Detect possible failures"
 end
 
 query filter(Long id, Set failureAllIndicators, Set visibleIndicators, long vehicleModelId, int vehicleProductionYear)
-    (genericDtcCode(id;) or
-     matchVehicleModelCode(id, vehicleModelId, vehicleProductionYear;)) and
-     checkFailureIndicators(failureAllIndicators, visibleIndicators;)
-end
-
-// ----------------------------------------------------------------------------
-query checkFailureIndicators(Set failureAllIndicators, Set visibleIndicators)
-    $cnt := Number(intValue > 0) from accumulate(
-        Object(
-            $x: this,
-            this memberOf failureAllIndicators
-        ) from visibleIndicators,
-        count($x)
-    )
+    genericDtcCode(id;) or matchVehicleModelCode(id, vehicleModelId, vehicleProductionYear;)
 end
 
 query genericDtcCode(Long _id)
@@ -79,23 +66,3 @@ query matchVehicleModelCode(Long _id, long _vehicleModelId, int _vehicleProducti
         )
     )
 end
-
-/*
-rule "Detect failures"
-    agenda-group "detect-failure"
-    when
-        $result: FailureList();
-        $vi: VisibleIndicators($visibleIndicators: indicators);
-        $f: Failure($failureIndicators: indicators);
-        checkFailureIndicators($failureIndicators, $visibleIndicators;);
-    then
-        $result.getFailures().add($f);
-end
-
-query checkFailureIndicators(Set failureAllIndicators, Set visibleIndicators)
-    $cnt := Number(intValue == failureAllIndicators.size()) from accumulate(
-        Object($x: this, this memberOf failureAllIndicators) from visibleIndicators,
-        count($x)
-    )
-end
-*/

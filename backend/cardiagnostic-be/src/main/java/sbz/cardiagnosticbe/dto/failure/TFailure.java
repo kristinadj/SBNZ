@@ -48,7 +48,7 @@ public class TFailure {
     }
 
     public TFailure(Failure failure) {
-        this.id = id;
+        this.id = failure.getId();
         this.dtcCode = failure.getDTC();
         this.name = failure.getFailureName();
         this.isManufacturerSpecific = failure.getManufacturerSpecific();
