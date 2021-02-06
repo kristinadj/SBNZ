@@ -1,0 +1,23 @@
+package sbnz.integracija;
+
+import sbz.cardiagnosticbe.model.drools.PossibleFailuresList;
+import sbz.cardiagnosticbe.model.drools.PossibleFailure;
+
+import java.util.List;
+import java.util.ArrayList;
+
+rule "Sort detected failures"
+    salience $matchingIndciators
+    lock-on-active true
+    agenda-group "sort-detected-failures"
+    when
+        $pf: PossibleFailure(
+            $matchingIndciators: matchingIndicatorsNumber
+        )
+        $sortedFailures: PossibleFailuresList()
+    then
+        System.out.println(String.format("Adding failure with code %s and %s matching indicators", $pf.getFailure().getDTC(), $matchingIndciators));
+        List<PossibleFailure> updatedList = new ArrayList<PossibleFailure>($sortedFailures.getFailures());
+        updatedList.add($pf);
+        $sortedFailures.setFailures(updatedList);
+end

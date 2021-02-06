@@ -1,56 +1,88 @@
 package sbz.cardiagnosticbe.dto.failure;
 
-import lombok.*;
-import sbz.cardiagnosticbe.model.enums.VehiclePart;
+import sbz.cardiagnosticbe.dto.detectedFailure.TRepairStep;
+import sbz.cardiagnosticbe.model.db.Failure;
+import sbz.cardiagnosticbe.model.enums.FailureSeverity;
 
-import javax.validation.constraints.*;
-import java.util.Set;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class TFailure {
+    private Long id;
+    private String dtcCode;
 
-    @NotNull(message = "Must have vehicle type")
-    public VehiclePart vehiclePart;
+    private String name;
 
-    public boolean isManufacturerSpecific;
+    private boolean isManufacturerSpecific;
 
-    @Min(0)
-    @Max(7)
-    public int vehicleSubsystem;
+    private String vehicleManufacturer;
 
-    @Min(0)
-    @Max(2)
-    public int carState;
+    private String vehicleModel;
 
-    @NotEmpty(message = "Indicators list can't be empty")
-    public Set<String> indicators;
+    private int minVehicleProductionYear;
 
-    @NotBlank(message = "Failure name can't be blank")
-    public String failureName;
+    private int maxVehicleProductionYear;
 
-    @NotBlank(message = "Failure name can't be blank")
-    public String repairSolution;
+    private List<String> indicators;
 
-    public String dtcCode;
+    private List<TRepairStep> repairSteps;
+
+    private FailureSeverity failureSeverity;
 
     public TFailure() {}
 
-    public TFailure(@NotNull(message = "Must have vehicle type") VehiclePart vehiclePart, boolean isManufacturerSpecific, @Min(0) @Max(7) int vehicleSubsystem, @Min(0) @Max(2) int carState, @NotEmpty(message = "Indicators list can't be empty") Set<String> indicators, @NotBlank(message = "Failure name can't be blank") String failureName, @NotBlank(message = "Failure name can't be blank") String repairSolution, String dtcCode) {
-        this.vehiclePart = vehiclePart;
+    public TFailure(Long id, String dtcCode, String name, boolean isManufacturerSpecific, String vehicleManufacturer, String vehicleModel, int minVehicleProductionYear, int maxVehicleProductionYear, List<String> indicators, List<TRepairStep> repairSteps, FailureSeverity failureSeverity) {
+        this.id = id;
+        this.dtcCode = dtcCode;
+        this.name = name;
         this.isManufacturerSpecific = isManufacturerSpecific;
-        this.vehicleSubsystem = vehicleSubsystem;
-        this.carState = carState;
+        this.vehicleManufacturer = vehicleManufacturer;
+        this.vehicleModel = vehicleModel;
+        this.minVehicleProductionYear = minVehicleProductionYear;
+        this.maxVehicleProductionYear = maxVehicleProductionYear;
         this.indicators = indicators;
-        this.failureName = failureName;
-        this.repairSolution = repairSolution;
+        this.repairSteps = repairSteps;
+        this.failureSeverity = failureSeverity;
+    }
+
+    public TFailure(Failure failure) {
+        this.id = id;
+        this.dtcCode = failure.getDTC();
+        this.name = failure.getFailureName();
+        this.isManufacturerSpecific = failure.getManufacturerSpecific();
+
+        if (this.isManufacturerSpecific) {
+            this.vehicleManufacturer = failure.getVehicleInformation().getVehicleModel().getVehicleManufacturer().getName();
+            this.vehicleModel = failure.getVehicleInformation().getVehicleModel().getModelName();
+            this.minVehicleProductionYear = failure.getVehicleInformation().getMinVehicleProductionYear();
+            this.maxVehicleProductionYear = failure.getVehicleInformation().getMaxVehicleProductionYear();
+        }
+
+        this.indicators = failure.getIndicators().stream().map
+                (i -> i.getDescription()).collect(Collectors.toList());
+        this.repairSteps = failure.getRepairSteps().stream().map
+                (s -> new TRepairStep(s)).collect(Collectors.toList());
+        Collections.sort(this.repairSteps);
+        this.failureSeverity = failure.getFailureSeverity();
+    }
+
+
+    public String getDtcCode() {
+        return dtcCode;
+    }
+
+    public void setDtcCode(String dtcCode) {
         this.dtcCode = dtcCode;
     }
 
-    public VehiclePart getVehiclePart() {
-        return vehiclePart;
+    public String getName() {
+        return name;
     }
 
-    public void setVehiclePart(VehiclePart vehiclePart) {
-        this.vehiclePart = vehiclePart;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public boolean isManufacturerSpecific() {
@@ -61,51 +93,67 @@ public class TFailure {
         isManufacturerSpecific = manufacturerSpecific;
     }
 
-    public int getVehicleSubsystem() {
-        return vehicleSubsystem;
+    public String getVehicleManufacturer() {
+        return vehicleManufacturer;
     }
 
-    public void setVehicleSubsystem(int vehicleSubsystem) {
-        this.vehicleSubsystem = vehicleSubsystem;
+    public void setVehicleManufacturer(String vehicleManufacturer) {
+        this.vehicleManufacturer = vehicleManufacturer;
     }
 
-    public int getCarState() {
-        return carState;
+    public String getVehicleModel() {
+        return vehicleModel;
     }
 
-    public void setCarState(int carState) {
-        this.carState = carState;
+    public void setVehicleModel(String vehicleModel) {
+        this.vehicleModel = vehicleModel;
     }
 
-    public Set<String> getIndicators() {
+    public int getMinVehicleProductionYear() {
+        return minVehicleProductionYear;
+    }
+
+    public void setMinVehicleProductionYear(int minVehicleProductionYear) {
+        this.minVehicleProductionYear = minVehicleProductionYear;
+    }
+
+    public int getMaxVehicleProductionYear() {
+        return maxVehicleProductionYear;
+    }
+
+    public void setMaxVehicleProductionYear(int maxVehicleProductionYear) {
+        this.maxVehicleProductionYear = maxVehicleProductionYear;
+    }
+
+    public List<String> getIndicators() {
         return indicators;
     }
 
-    public void setIndicators(Set<String> indicators) {
+    public void setIndicators(List<String> indicators) {
         this.indicators = indicators;
     }
 
-    public String getFailureName() {
-        return failureName;
+    public Long getId() {
+        return id;
     }
 
-    public void setFailureName(String failureName) {
-        this.failureName = failureName;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public String getRepairSolution() {
-        return repairSolution;
+    public List<TRepairStep> getRepairSteps() {
+        return repairSteps;
     }
 
-    public void setRepairSolution(String repairSolution) {
-        this.repairSolution = repairSolution;
+    public void setRepairSteps(List<TRepairStep> repairSteps) {
+        this.repairSteps = repairSteps;
     }
 
-    public String getDtcCode() {
-        return dtcCode;
+    public FailureSeverity getFailureSeverity() {
+        return failureSeverity;
     }
 
-    public void setDtcCode(String dtcCode) {
-        this.dtcCode = dtcCode;
+    public void setFailureSeverity(FailureSeverity failureSeverity) {
+        this.failureSeverity = failureSeverity;
     }
 }

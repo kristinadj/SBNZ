@@ -8,9 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import sbz.cardiagnosticbe.model.User;
+import sbz.cardiagnosticbe.model.db.User;
 import sbz.cardiagnosticbe.model.enums.Authority;
 import sbz.cardiagnosticbe.service.UserService;
 
@@ -26,7 +24,7 @@ public class CardiagnosticBeApplication implements CommandLineRunner {
 		if (userService.findByUsername("admin") == null) {
 			User user = new User();
 			user.setUsername("admin");
-			user.setPassword("admin");
+			user.setPassword("adminpass");
 			user.setAuthority(Authority.EXPERT);
 
 			userService.register(user);
@@ -40,15 +38,6 @@ public class CardiagnosticBeApplication implements CommandLineRunner {
 		KieScanner kScanner = ks.newKieScanner(kContainer);
 		kScanner.start(2000);
 		return kContainer;
-	}
-
-	public WebMvcConfigurer corsConfigurer() {
-		return new WebMvcConfigurer() {
-			@Override
-			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/greeting-javaconfig").allowedOrigins("http://localhost:8080");
-			}
-		};
 	}
 
 	public static void main(String[] args) {

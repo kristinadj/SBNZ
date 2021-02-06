@@ -1,0 +1,101 @@
+package sbnz.integracija;
+
+import sbz.cardiagnosticbe.model.drools.DetectFailureParameters;
+import sbz.cardiagnosticbe.model.drools.PossibleFailuresList;
+import sbz.cardiagnosticbe.model.drools.PossibleFailure;
+import sbz.cardiagnosticbe.model.db.Failure;
+import sbz.cardiagnosticbe.model.db.Indicator;
+
+import java.util.Set;
+import java.util.List;
+import java.lang.Long;
+
+rule "Detect possible failures"
+    lock-on-active true
+    agenda-group "detect-failures"
+    when
+        $possibleFailures: PossibleFailuresList()
+        $vi: DetectFailureParameters(
+            $vehicleModelId: vehicleModelId,
+            $vehicleProductionYear: vehicleProductionYear,
+            $visibleIndicators: indicators
+        )
+        $f: Failure(
+            $fid: id,
+            $code: DTC,
+            $failureIndicators: indicators
+        )
+        filter($fid, $failureIndicators, $visibleIndicators, $vehicleModelId, $vehicleProductionYear;)
+        accumulate(
+                Object(
+                    $x: this,
+                    this memberOf $failureIndicators
+                ) from $visibleIndicators,
+                $matchingIndicators: collectList($x)
+            )
+    then
+        System.out.println(String.format("Filtered failure %s - number of matching indicators: %s", $code, $matchingIndicators.size()));
+        PossibleFailure possibleFailure = new PossibleFailure($f, $matchingIndicators.size());
+        $possibleFailures.getFailures().add(possibleFailure);
+
+        insert(possibleFailure);
+        update($possibleFailures);
+end
+
+query filter(Long id, Set failureAllIndicators, Set visibleIndicators, long vehicleModelId, int vehicleProductionYear)
+    (genericDtcCode(id;) or
+     matchVehicleModelCode(id, vehicleModelId, vehicleProductionYear;)) and
+     checkFailureIndicators(failureAllIndicators, visibleIndicators;)
+end
+
+// ----------------------------------------------------------------------------
+query checkFailureIndicators(Set failureAllIndicators, Set visibleIndicators)
+    $cnt := Number(intValue > 0) from accumulate(
+        Object(
+            $x: this,
+            this memberOf failureAllIndicators
+        ) from visibleIndicators,
+        count($x)
+    )
+end
+
+query genericDtcCode(Long _id)
+    Failure(
+        id == _id,
+        manufacturerSpecific == false
+    )
+end
+
+query matchVehicleModelCode(Long _id, long _vehicleModelId, int _vehicleProductionYear)
+    Failure(
+        _id == id,
+        manufacturerSpecific == true,
+        vehicleInformation.(
+            vehicleModel.(
+                id == _vehicleModelId
+            ),
+            minVehicleProductionYear <= _vehicleProductionYear,
+            maxVehicleProductionYear >= _vehicleProductionYear
+        )
+    )
+end
+
+/*
+rule "Detect failures"
+    agenda-group "detect-failure"
+    when
+        $result: FailureList();
+        $vi: VisibleIndicators($visibleIndicators: indicators);
+        $f: Failure($failureIndicators: indicators);
+        checkFailureIndicators($failureIndicators, $visibleIndicators;);
+    then
+        $result.getFailures().add($f);
+end
+
+query checkFailureIndicators(Set failureAllIndicators, Set visibleIndicators)
+    $cnt := Number(intValue == failureAllIndicators.size()) from accumulate(
+        Object($x: this, this memberOf failureAllIndicators) from visibleIndicators,
+        count($x)
+    )
+end
+*/

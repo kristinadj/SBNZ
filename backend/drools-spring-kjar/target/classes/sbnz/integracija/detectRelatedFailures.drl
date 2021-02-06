@@ -1,0 +1,43 @@
+package sbnz.integracija;
+
+import sbz.cardiagnosticbe.model.drools.PossibleFailuresList;
+import sbz.cardiagnosticbe.model.drools.DetectedRelatedFailuresProblems;
+import sbz.cardiagnosticbe.model.db.RelatedFailures;
+
+import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+
+rule "Detect related failures"
+    salience $failuresCnt
+    lock-on-active true
+    agenda-group "related-failures"
+    when
+        $fl: PossibleFailuresList(
+            $possibleFailures: failures
+        )
+        $rf: RelatedFailures(
+            $rfid: id,
+            $relatedFailures: failures,
+            $failuresCnt: failures.size()
+        )
+        $drfp: DetectedRelatedFailuresProblems()
+        match($relatedFailures, $possibleFailures;)
+    then
+        System.out.println(String.format("Detected related failures problem %s - matching failures: %s", $rfid, $relatedFailures.size()));
+        List<RelatedFailures> updatedList = new ArrayList<RelatedFailures>($drfp.getRelatedFailuresProblems());
+        updatedList.add($rf);
+        $drfp.setRelatedFailuresProblems(updatedList);
+        update($drfp)
+
+end
+
+query match(Set relatedFailures, List possbileFailures)
+    $cnt := Number(intValue == relatedFailures.size()) from accumulate(
+        PossibleFailure(
+            $f: failure,
+            $f memberOf relatedFailures
+        ) from possbileFailures,
+        count($f)
+    )
+end

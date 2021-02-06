@@ -6,17 +6,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import sbz.cardiagnosticbe.dto.TDtcParams;
-import sbz.cardiagnosticbe.dto.failure.TFailure;
-import sbz.cardiagnosticbe.model.Indicator;
-import sbz.cardiagnosticbe.model.drools.FailureList;
-import sbz.cardiagnosticbe.model.Failure;
-import sbz.cardiagnosticbe.model.drools.VisibleIndicators;
-import sbz.cardiagnosticbe.model.enums.CarState;
-import sbz.cardiagnosticbe.repository.FailureRepository;
-import sbz.cardiagnosticbe.repository.IndicatorRepository;
+import sbz.cardiagnosticbe.dto.detectedFailure.TDetectedFailure;
+import sbz.cardiagnosticbe.dto.detectedFailure.TDetectedRelatedFailuresProblem;
+import sbz.cardiagnosticbe.dto.detectedFailure.TDetectionResult;
+import sbz.cardiagnosticbe.dto.failure.TDtcParams;
+import sbz.cardiagnosticbe.dto.failure.TNewFailure;
+import sbz.cardiagnosticbe.exception.VehicleModelException;
+import sbz.cardiagnosticbe.model.db.*;
+import sbz.cardiagnosticbe.model.drools.CurrentDetectedFailure;
+import sbz.cardiagnosticbe.model.drools.DetectedRelatedFailuresProblems;
+import sbz.cardiagnosticbe.model.drools.PossibleFailuresList;
+import sbz.cardiagnosticbe.model.drools.DetectFailureParameters;
+import sbz.cardiagnosticbe.repository.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class FailureService {
@@ -27,6 +32,18 @@ public class FailureService {
     @Autowired
     private IndicatorRepository indicatorRepository;
 
+    @Autowired
+    private VehicleModelRepository vehicleModelRepository;
+
+    @Autowired
+    private FailureVehicleInformationRepository failureVehicleInformationRepository;
+
+    @Autowired
+    private RelatedFailuresRepository relatedFailuresRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
     private final KieContainer kieContainer;
 
     private static final Logger logger = LoggerFactory.getLogger(FailureService.class);
@@ -35,29 +52,50 @@ public class FailureService {
         this.kieContainer = kieContainer;
     }
 
-    public void addFailure(TFailure failureReq) {
+    public void addFailure(TNewFailure failureReq) {
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.insert(failureReq);
 
         kieSession.getAgenda().getAgendaGroup("add-failure").setFocus();
         logger.info("Adding failure - fired: " + kieSession.fireAllRules());
 
-        String failureCnt = String.format("%03d", failureRepository.countByDTCStartingWith(failureReq.getDtcCode()));
+        String failureCnt = String.format("%02d", failureRepository.countByDTCStartingWith(failureReq.getDtcCode()));
 
         Failure failure = new Failure();
-        failure.setCarState(CarState.fromInteger(failureReq.getCarState()));
         failure.setFailureName(failureReq.getFailureName());
-        failure.setRepairSolution(failureReq.getRepairSolution());
         failure.setDTC(failureReq.getDtcCode() + failureCnt);
+        failure.setManufacturerSpecific(failureReq.isManufacturerSpecific());
+        failure.setFailureSeverity(failureReq.getFailureSeverity());
+
+        if (failure.getManufacturerSpecific()) {
+            Optional<VehicleModel> vehicleModel = vehicleModelRepository.findById(failureReq.getVehicleModelId());
+            if (vehicleModel.isEmpty()) {
+                throw new VehicleModelException("Vehicle model not found");
+            }
+
+            FailureVehicleInformation failureVehicleInformation = new FailureVehicleInformation();
+            failureVehicleInformation.setVehicleModel(vehicleModel.get());
+            failureVehicleInformation.setMinVehicleProductionYear(failureReq.getMinVehicleProductionYear());
+            failureVehicleInformation.setMaxVehicleProductionYear(failureReq.getMaxVehicleProductionYear());
+            failure.setVehicleInformation(failureVehicleInformation);
+            failureVehicleInformationRepository.save(failureVehicleInformation);
+        }
+
+        for (int i = 0; i < failureReq.getRepairSteps().size(); i++) {
+            RepairStep repairStep = new RepairStep();
+            repairStep.setOrderNumber(i);
+            repairStep.setDescription(failureReq.getRepairSteps().get(i));
+            repairStep.setFailure(failure);
+            failure.getRepairSteps().add(repairStep);
+        }
 
         HashSet<Indicator> indicators = new HashSet<>();
-        for (String indicatorName: failureReq.getIndicators()) {
-            Indicator indicator = indicatorRepository.findByIndicatorName(indicatorName);
+        for (String indicatorDescription : failureReq.getIndicators()) {
+            Indicator indicator = indicatorRepository.findByDescription(indicatorDescription);
 
             if (indicator == null) {
                 indicator = new Indicator();
-                indicator.setIndicatorName(indicatorName);
-
+                indicator.setDescription(indicatorDescription);
                 indicatorRepository.save(indicator);
             }
             indicators.add(indicator);
@@ -69,47 +107,107 @@ public class FailureService {
         kieSession.dispose();
     }
 
-    public List<Failure> getFailuresByDtc(TDtcParams dtcParams) {
-        FailureList resultFailures = new FailureList();
-        resultFailures.setFailures(new ArrayList<>());
-        List<Failure> allFailures = this.failureRepository.findAll();
-
-        KieSession kieSession = kieContainer.newKieSession();
-
-        kieSession.insert(dtcParams);
-        kieSession.insert(resultFailures);
-
-        for (Failure f: allFailures) {
-            kieSession.insert(f);
-        }
-
-        kieSession.getAgenda().getAgendaGroup("failure-by-dtc").setFocus();
-        logger.info("Filtering failures by dtc - fired: " + kieSession.fireAllRules());
-
-        kieSession.dispose();
-        return resultFailures.getFailures();
+    public List<Failure> findByIsManufacturerSpecific(boolean isManufacturerSpecific) {
+        return failureRepository.findAllByIsManufacturerSpecific(isManufacturerSpecific);
     }
 
-    public List<Failure> getPossibleFailures(Set<Indicator> indicators, CarState carState) {
-        FailureList resultFailures = new FailureList();
+    public List<Failure> getFailuresByDtc(TDtcParams dtcParams) {
+        PossibleFailuresList resultFailures = new PossibleFailuresList();
         resultFailures.setFailures(new ArrayList<>());
-        VisibleIndicators visibleIndicators = new VisibleIndicators();
-        visibleIndicators.setIndicators(indicators);
-        visibleIndicators.setCarState(carState);
         List<Failure> allFailures = this.failureRepository.findAll();
 
         KieSession kieSession = kieContainer.newKieSession();
+        kieSession.insert(dtcParams);
+
+        kieSession.getAgenda().getAgendaGroup("format-dtc").setFocus();
+        logger.info("Formatting dtc - fired: " + kieSession.fireAllRules());
+
         kieSession.insert(resultFailures);
-        kieSession.insert(visibleIndicators);
+        allFailures.forEach(kieSession::insert);
 
-        for (Failure f: allFailures) {
-            kieSession.insert(f);
-        }
-
-        kieSession.getAgenda().getAgendaGroup("detect-failure").setFocus();
-        logger.info("Detecting failures by - fired: " + kieSession.fireAllRules());
+        kieSession.getAgenda().getAgendaGroup("filter-by-dtc").setFocus();
+        logger.info("Filtering by dtc - fired: " + kieSession.fireAllRules());
 
         kieSession.dispose();
-        return resultFailures.getFailures();
+        List<Failure> failures = resultFailures.getFailures().stream().map
+                (f -> f.getFailure()).collect(Collectors.toList());
+        return failures;
+    }
+
+    public TDetectionResult detect(Set<Indicator> indicators, VehicleModel vehicleModel, int year, String username) {
+        User user = userRepository.findByUsername(username);
+
+        List<Failure> allFailures = failureRepository.findAll();
+        List<RelatedFailures> allRelatedFailures = relatedFailuresRepository.findAll();
+        PossibleFailuresList resultFailures = new PossibleFailuresList(new ArrayList<>());
+        DetectedRelatedFailuresProblems detectedRelatedFailuresProblems = new DetectedRelatedFailuresProblems(new ArrayList<>());
+
+        DetectFailureParameters parameters = new DetectFailureParameters();
+        parameters.setIndicators(indicators);
+        parameters.setVehicleModelId(vehicleModel.getId());
+        parameters.setVehicleProductionYear(year);
+
+        KieSession kieSession = kieContainer.newKieSession();
+        kieSession.insert(parameters);
+        kieSession.insert(resultFailures);
+        kieSession.insert(detectedRelatedFailuresProblems);
+        allFailures.forEach(kieSession::insert);
+        allRelatedFailures.forEach(kieSession::insert);
+
+        kieSession.getAgenda().getAgendaGroup("detect-failures").setFocus();
+        logger.info("Detecting possible failures - fired: " + kieSession.fireAllRules());
+
+        kieSession.getAgenda().getAgendaGroup("related-failures").setFocus();
+        logger.info("Detecting related failures - fired: " + kieSession.fireAllRules());
+
+        TDetectionResult result = null;
+        if (detectedRelatedFailuresProblems.getRelatedFailuresProblems().size() > 0) {
+            logger.info("Return related failures problem");
+
+            // add to user history
+            DetectedRelatedFailures detected = new DetectedRelatedFailures(null, vehicleModel, year, detectedRelatedFailuresProblems.getRelatedFailuresProblems().get(0), LocalDateTime.now());
+            user.getDetectedRelatedFailures().add(detected);
+            userRepository.save(user);
+
+            result = new TDetectedRelatedFailuresProblem(
+                    detectedRelatedFailuresProblems.getRelatedFailuresProblems().get(0)
+            );
+
+        } else {
+            kieSession.getAgenda().getAgendaGroup("sort-detected-failures").setFocus();
+            PossibleFailuresList sortedFailures = new PossibleFailuresList(new ArrayList<>());
+            kieSession.insert(sortedFailures);
+            logger.info("Sorting possible failures - fired: " + kieSession.fireAllRules());
+
+            if (sortedFailures.getFailures().size() > 0) {
+                // TODO: Sort ?
+                CurrentDetectedFailure detectedFailure = new CurrentDetectedFailure(sortedFailures.getFailures().get(0).getFailure(), 0);
+                //CurrentDetectedFailure detectedFailure = new CurrentDetectedFailure(sortedFailures.getFailures().get(0).getFailure(),
+                        //sortedFailures.getFailures().get(0).getFailure().getRepairSteps().size());
+
+                //kieSession.insert(user);
+                //kieSession.insert(detectedFailure);
+                //kieSession.getAgenda().getAgendaGroup("failure-history");
+                //logger.info("Sorting possible failures - fired: " + kieSession.fireAllRules());
+
+                // add to user history
+                RepairStep repairStep = detectedFailure.getFailure().getRepairSteps()
+                        .stream()
+                        .filter(r -> r.getOrderNumber() == detectedFailure.getNextRepairStep())
+                        .findFirst()
+                        .orElse(null);
+                DetectedFailure detected = new DetectedFailure(null, vehicleModel, year, detectedFailure.getFailure(), LocalDateTime.now(), repairStep);
+                user.getDetectedFailures().add(detected);
+                userRepository.save(user);
+
+                result = new TDetectedFailure(detectedFailure.getFailure(), repairStep);
+            }
+        }
+        kieSession.dispose();
+        return result;
+    }
+
+    public List<Failure> getAll() {
+        return failureRepository.findAll();
     }
 }

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import sbz.cardiagnosticbe.dto.user.TRegister;
 import sbz.cardiagnosticbe.dto.user.TSignIn;
 import sbz.cardiagnosticbe.dto.user.TSignInResponse;
-import sbz.cardiagnosticbe.model.User;
+import sbz.cardiagnosticbe.model.db.User;
 import sbz.cardiagnosticbe.model.enums.Authority;
 import sbz.cardiagnosticbe.security.TokenUtils;
 import sbz.cardiagnosticbe.service.CustomUserDetailsService;
@@ -35,12 +35,6 @@ public class UserController {
     @Autowired
     private TokenUtils tokenUtils;
 
-    private final KieContainer kieContainer;
-
-    @Autowired
-    public UserController(KieContainer kieContainer) {
-        this.kieContainer = kieContainer;
-    }
 
     @RequestMapping(method = RequestMethod.POST, value="/authenticate")
     public ResponseEntity<Object> signIn(@RequestBody TSignIn signInReq) {
@@ -84,19 +78,5 @@ public class UserController {
         } catch (Exception ex) {
             return new ResponseEntity<>("Unexpected exception", HttpStatus.BAD_REQUEST);
         }
-    }
-
-    @RequestMapping(method = RequestMethod.GET, value="/test")
-    public ResponseEntity test() {
-        User user = new User();
-        user.setUsername("test");
-
-        KieSession kSession = kieContainer.newKieSession();
-        kSession.insert(user);
-        int fired = kSession.fireAllRules();
-        System.out.println("Fired: " + fired);
-        kSession.dispose();
-
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

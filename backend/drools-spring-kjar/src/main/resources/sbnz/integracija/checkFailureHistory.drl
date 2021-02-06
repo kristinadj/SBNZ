@@ -1,0 +1,96 @@
+/*
+package sbnz.integracija;
+
+import sbz.cardiagnosticbe.model.drools.CurrentDetectedFailure;
+import sbz.cardiagnosticbe.model.db.User;
+import sbz.cardiagnosticbe.model.db.DetectedFailure;
+
+import java.time.LocalDate;
+import java.util.List;
+*/
+/*
+rule "Check failure history - not all steps applied"
+    agenda-group "failure-history"
+    when
+        $currDf: CurrentDetectedFailure(
+            $currDetectedFailureId: failure.id,
+            $maxStepCnt: nextRepairStep
+        )
+        $u: User(
+            $detectedFailures: detectedFailures
+        )
+        Number(intValue == 1) from accumulate(
+            DetectedFailure(
+                $f: failure,
+                timestamp.isAfter(LocalDate.now().minusMonths(1)),
+                failure.(
+                    id == $currDetectedFailureId
+                ),
+                repairStepApplied.(
+                    $lastApplied: orderNumber,
+                    $lastApplied < $maxStepCnt
+                )
+            ) from $detectedFailures,
+            count($f)
+        )
+    then
+        System.out.println();
+        $currDf.setNextRepairStep($lastApplied + 1);
+end
+
+
+/*
+rule "Check failure history - all steps already applied"
+    agenda-group "failure-history"
+    when
+        $currDf: CurrentDetectedFailure(
+            $currDetectedFailureId: failure.id,
+            $maxStepCnt: nextRepairStep
+        )
+        $u: User(
+            $detectedFailures: detectedFailures
+        )
+       Number(intValue == 1) from accumulate(
+            DetectedFailure(
+                $f: this,
+                $f.failure.(
+                    id == $currDetectedFailureId
+                ),
+                //timestamp.isAfter(LocalDate.now().minusMonths(1)),
+                repairStepApplied.(
+                    $lastApplied: orderNumber,
+                    $lastApplied >= $maxStepCnt
+                )
+            ) from $detectedFailures,
+            count($f)
+        )
+    then
+        $currDf.setNextRepairStep(0);
+end
+*/
+
+/*
+rule "Check failure history - first time appearing"
+    agenda-group "failure-history"
+    when
+        $currDf: CurrentDetectedFailure(
+            $currDetectedFailureId: failure.id
+        )
+        $u: User(
+            $detectedFailures: detectedFailures
+        )
+        Number(intValue == $detectedFailures.size()) from accumulate(
+            DetectedFailure(
+                $f: this,
+                $f.failure.(
+                    id != $currDetectedFailureId
+                )
+            ) from $detectedFailures,
+            count($f)
+        )
+    then
+        System.out.println("Failure is appearing for the first time");
+        $currDf.setNextRepairStep(0);
+end
+
+*/

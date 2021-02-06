@@ -1,15 +1,8 @@
 package sbz.cardiagnosticbe.droolsunit;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
-import org.kie.api.runtime.KieSession;
-import sbz.cardiagnosticbe.dto.failure.TFailure;
-import sbz.cardiagnosticbe.model.enums.CarState;
-import sbz.cardiagnosticbe.model.enums.VehiclePart;
-
-import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -25,6 +18,7 @@ public class FormatDtcCode {
         kieContainer = kieServices.newKieContainer(kieServices.newReleaseId("sbnz.integracija", "drools-spring-kjar", "0.0.1-SNAPSHOT"));
     }
 
+    /*
     @Test
     public void test_DtcCodesP0() {
         KieSession kieSession = kieContainer.newKieSession();
@@ -216,4 +210,5 @@ public class FormatDtcCode {
 
         assertEquals("U10", dto.getDtcCode());
     }
+     */
 }

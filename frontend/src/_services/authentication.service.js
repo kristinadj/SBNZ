@@ -1,7 +1,7 @@
 import { BehaviorSubject } from "rxjs";
 
-import config from "config";
 import { requestOptions, handleResponse } from "@/_helpers";
+
 
 const currentUserSubject = new BehaviorSubject(
   JSON.parse(localStorage.getItem("currentUser"))
@@ -17,8 +17,9 @@ export const authenticationService = {
 };
 
 function login(username, password) {
+  console.log(process.env.BE_BASE_URL)
   return fetch(
-    `${config.apiUrl}/users/authenticate`,
+    `/api/users/authenticate`,
     requestOptions.post({ username, password })
   )
     .then(handleResponse)

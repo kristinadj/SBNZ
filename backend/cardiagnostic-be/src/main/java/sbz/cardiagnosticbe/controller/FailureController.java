@@ -5,21 +5,24 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import sbz.cardiagnosticbe.dto.TDtcParams;
-import sbz.cardiagnosticbe.dto.failure.TFailure;
-import sbz.cardiagnosticbe.model.Failure;
-import sbz.cardiagnosticbe.model.Indicator;
-import sbz.cardiagnosticbe.model.enums.CarState;
+import sbz.cardiagnosticbe.dto.detectedFailure.TDetectionResult;
+import sbz.cardiagnosticbe.dto.failure.*;
+import sbz.cardiagnosticbe.model.db.Failure;
+import sbz.cardiagnosticbe.model.db.Indicator;
+import sbz.cardiagnosticbe.model.db.VehicleModel;
 import sbz.cardiagnosticbe.service.FailureService;
 import sbz.cardiagnosticbe.service.IndicatorService;
+import sbz.cardiagnosticbe.service.VehicleModelService;
 
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/api/failure")
+@RequestMapping(value = "/api/failures")
 public class FailureController {
 
     @Autowired
@@ -28,39 +31,61 @@ public class FailureController {
     @Autowired
     private IndicatorService indicatorService;
 
+    @Autowired
+    private VehicleModelService vehicleModelService;
+
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = "application/json"
     )
     @PreAuthorize("hasAuthority('EXPERT')")
-    public ResponseEntity<Object> addFailure(@Valid @RequestBody TFailure failureReq) {
+    public ResponseEntity addFailure(@Valid @RequestBody TNewFailure failureReq) {
         failureService.addFailure(failureReq);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @RequestMapping(
-            value = "/detect/{carStateId}",
+            method = RequestMethod.GET,
+            produces = "application/json"
+    )
+    @PreAuthorize("hasAuthority('EXPERT') || hasAuthority('USER')")
+    public ResponseEntity<List<TFailure>> getAll() {
+        List<Failure> failures = failureService.getAll();
+        List<TFailure> tFailures = failures.stream().map
+                (f -> new TFailure(f)).collect(Collectors.toList());
+        return new ResponseEntity<>(tFailures, HttpStatus.OK);
+    }
+
+    @RequestMapping(
+            value = "/byIsManufacturerSpecific",
+            method = RequestMethod.GET,
+            produces = "application/json"
+    )
+    @PreAuthorize("hasAuthority('EXPERT')")
+    public ResponseEntity<List<TFailureBasicInfo>> getByIsManufacturerSpecific(@RequestParam boolean isManufacturerSpecific) {
+        List<Failure> failures = failureService.findByIsManufacturerSpecific(isManufacturerSpecific);
+        List<TFailureBasicInfo> tFailures = failures.stream().map
+                (f -> new TFailureBasicInfo(f)).collect(Collectors.toList());
+        return new ResponseEntity<>(tFailures, HttpStatus.OK);
+    }
+
+    @RequestMapping(
+            value = "/detect",
             method = RequestMethod.POST,
             consumes = "application/json",
             produces = "application/json"
     )
-    @PreAuthorize("hasAuthority('EXPERT')")
-    public ResponseEntity<List<Failure>> getPossibleFailure(@RequestBody List<Long> indicatorsIds, @PathVariable int carStateId) {
-        CarState carState = CarState.fromInteger(carStateId);
+    @PreAuthorize("hasAuthority('USER')")
+    public ResponseEntity<TDetectionResult> detect(Principal principal, @RequestBody TDetectFailure req) {
+        String username = principal.getName();
         Set<Indicator> indicators = new HashSet<>();
-
-        for (Long id: indicatorsIds) {
+        for (Long id: req.getIndicatorsIds()) {
             Indicator indicator = indicatorService.getById(id);
-
-            if (indicator != null) {
-                indicators.add(indicator);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-
+            indicators.add(indicator);
         }
+        VehicleModel vehicleModel = vehicleModelService.getById(req.getVehicleModelId());
 
-        List<Failure> result = failureService.getPossibleFailures(indicators, carState);
+        TDetectionResult result = failureService.detect(indicators, vehicleModel, req.getVehicleProductionYear(), username);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -70,9 +95,12 @@ public class FailureController {
             consumes = "application/json",
             produces = "application/json"
     )
-    @PreAuthorize("hasAuthority('EXPERT')")
-    public ResponseEntity<List<Failure>> getFailureFromDtc(@Valid @RequestBody TDtcParams dtcReq) {
-        List<Failure> result = failureService.getFailuresByDtc(dtcReq);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+    @PreAuthorize("hasAuthority('EXPERT') || hasAuthority('USER')")
+    public ResponseEntity<List<TFailure>> getFailureFromDtc(@Valid @RequestBody TDtcParams req) {
+        List<Failure> failures = failureService.getFailuresByDtc(req);
+        List<TFailure> tFailures = failures.stream().map
+                (f -> new TFailure(f)).collect(Collectors.toList());
+        return new ResponseEntity<>(tFailures, HttpStatus.OK);
     }
 }
+

@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import sbz.cardiagnosticbe.model.User;
+import sbz.cardiagnosticbe.model.db.User;
 import sbz.cardiagnosticbe.repository.UserRepository;
 
 @Service
