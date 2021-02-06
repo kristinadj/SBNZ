@@ -7,12 +7,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import sbz.cardiagnosticbe.dto.detectedFailure.TDetectionResult;
 import sbz.cardiagnosticbe.dto.failure.*;
+import sbz.cardiagnosticbe.model.db.DetectedFailure;
 import sbz.cardiagnosticbe.model.db.Failure;
 import sbz.cardiagnosticbe.model.db.Indicator;
 import sbz.cardiagnosticbe.model.db.VehicleModel;
-import sbz.cardiagnosticbe.service.FailureService;
-import sbz.cardiagnosticbe.service.IndicatorService;
-import sbz.cardiagnosticbe.service.VehicleModelService;
+import sbz.cardiagnosticbe.service.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
@@ -33,6 +32,12 @@ public class FailureController {
 
     @Autowired
     private VehicleModelService vehicleModelService;
+
+    @Autowired
+    private DetectedFailureService detectedFailureService;
+
+    @Autowired
+    private RelatedFailuresService relatedFailuresService;
 
     @RequestMapping(
             method = RequestMethod.POST,
@@ -101,6 +106,32 @@ public class FailureController {
         List<TFailure> tFailures = failures.stream().map
                 (f -> new TFailure(f)).collect(Collectors.toList());
         return new ResponseEntity<>(tFailures, HttpStatus.OK);
+    }
+
+    @RequestMapping(
+            value = "/{id}",
+            method = RequestMethod.PUT,
+            consumes = "application/json"
+    )
+    @PreAuthorize("hasAuthority('EXPERT')")
+    public ResponseEntity update(@PathVariable Long id, @Valid @RequestBody TEditFailure req) {
+        failureService.update(id, req);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(
+            value = "/{id}",
+            method = RequestMethod.DELETE
+    )
+    @PreAuthorize("hasAuthority('EXPERT')")
+
+    public ResponseEntity update(@PathVariable Long id) {
+        Failure failure = failureService.findById(id);
+        if (!detectedFailureService.findByFailureId(failure).isEmpty() &&
+            !relatedFailuresService.findByFailureId(failure).isEmpty()) {
+            failureService.remove(id);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
 

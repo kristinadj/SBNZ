@@ -10,7 +10,9 @@ import sbz.cardiagnosticbe.dto.detectedFailure.TDetectedFailure;
 import sbz.cardiagnosticbe.dto.detectedFailure.TDetectedRelatedFailuresProblem;
 import sbz.cardiagnosticbe.dto.detectedFailure.TDetectionResult;
 import sbz.cardiagnosticbe.dto.failure.TDtcParams;
+import sbz.cardiagnosticbe.dto.failure.TEditFailure;
 import sbz.cardiagnosticbe.dto.failure.TNewFailure;
+import sbz.cardiagnosticbe.exception.FailureException;
 import sbz.cardiagnosticbe.exception.VehicleModelException;
 import sbz.cardiagnosticbe.model.db.*;
 import sbz.cardiagnosticbe.model.drools.CurrentDetectedFailure;
@@ -52,7 +54,47 @@ public class FailureService {
         this.kieContainer = kieContainer;
     }
 
+    public Failure findById(Long id) {
+        Optional<Failure> failure = failureRepository.findById(id);
+        if (failure.isEmpty()) {
+            throw  new FailureException("Invalid failure ID");
+        }
+
+        return failure.get();
+    }
+
+    public List<Failure> getAll() {
+        return failureRepository.findAll();
+    }
+
+    public List<Failure> findByIsManufacturerSpecific(boolean isManufacturerSpecific) {
+        return failureRepository.findAllByIsManufacturerSpecific(isManufacturerSpecific);
+    }
+
+    public void remove(Long id) {
+        failureRepository.deleteById(id);
+    }
+
     public void addFailure(TNewFailure failureReq) {
+        if (failureReq.getIndicators().isEmpty()) {
+            throw  new FailureException("No indicators selected");
+        }
+
+        if (failureReq.getRepairSteps().isEmpty()) {
+            throw  new FailureException("Repair steps not added");
+        }
+
+        if (failureReq.isManufacturerSpecific()) {
+            if (failureReq.getVehicleModelId() == 0 ||
+                failureReq.getMaxVehicleProductionYear() == 0 ||
+                failureReq.getMinVehicleProductionYear() == 0) {
+                throw new VehicleModelException("Invalid vehicle information");
+            }
+
+            if (failureReq.getMinVehicleProductionYear() > failureReq.getMaxVehicleProductionYear()) {
+                throw new VehicleModelException("Invalid vehicle production years");
+            }
+        }
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.insert(failureReq);
 
@@ -107,9 +149,6 @@ public class FailureService {
         kieSession.dispose();
     }
 
-    public List<Failure> findByIsManufacturerSpecific(boolean isManufacturerSpecific) {
-        return failureRepository.findAllByIsManufacturerSpecific(isManufacturerSpecific);
-    }
 
     public List<Failure> getFailuresByDtc(TDtcParams dtcParams) {
         PossibleFailuresList resultFailures = new PossibleFailuresList();
@@ -204,7 +243,72 @@ public class FailureService {
         return result;
     }
 
-    public List<Failure> getAll() {
-        return failureRepository.findAll();
+
+    public void update(Long id, TEditFailure failureReq) {
+        Optional<Failure> failureOpt = failureRepository.findById(id);
+        if (failureOpt.isEmpty()) {
+            throw new FailureException("Invalid failure ID");
+        }
+
+        if (failureReq.getIndicators().isEmpty()) {
+            throw  new FailureException("No indicators selected");
+        }
+
+        if (failureReq.getRepairSteps().isEmpty()) {
+            throw  new FailureException("Repair steps not added");
+        }
+
+        if (failureReq.isManufacturerSpecific()) {
+            if (failureReq.getVehicleModelId() == 0 ||
+                    failureReq.getMaxVehicleProductionYear() == 0 ||
+                    failureReq.getMinVehicleProductionYear() == 0) {
+                throw new VehicleModelException("Invalid vehicle information");
+            }
+
+            if (failureReq.getMinVehicleProductionYear() > failureReq.getMaxVehicleProductionYear()) {
+                throw new VehicleModelException("Invalid vehicle production years");
+            }
+        }
+
+        Failure failure = failureOpt.get();
+        failure.setFailureName(failureReq.getFailureName());
+        failure.setManufacturerSpecific(failureReq.isManufacturerSpecific());
+        failure.setFailureSeverity(failureReq.getFailureSeverity());
+
+        if (failure.getManufacturerSpecific()) {
+            Optional<VehicleModel> vehicleModel = vehicleModelRepository.findById(failureReq.getVehicleModelId());
+            if (vehicleModel.isEmpty()) {
+                throw new VehicleModelException("Vehicle model not found");
+            }
+
+            FailureVehicleInformation failureVehicleInformation = new FailureVehicleInformation();
+            failureVehicleInformation.setVehicleModel(vehicleModel.get());
+            failureVehicleInformation.setMinVehicleProductionYear(failureReq.getMinVehicleProductionYear());
+            failureVehicleInformation.setMaxVehicleProductionYear(failureReq.getMaxVehicleProductionYear());
+            failure.setVehicleInformation(failureVehicleInformation);
+            failureVehicleInformationRepository.save(failureVehicleInformation);
+        }
+
+        for (int i = 0; i < failureReq.getRepairSteps().size(); i++) {
+            RepairStep repairStep = new RepairStep();
+            repairStep.setOrderNumber(i);
+            repairStep.setDescription(failureReq.getRepairSteps().get(i));
+            repairStep.setFailure(failure);
+            failure.getRepairSteps().add(repairStep);
+        }
+
+        HashSet<Indicator> indicators = new HashSet<>();
+        for (String indicatorDescription : failureReq.getIndicators()) {
+            Indicator indicator = indicatorRepository.findByDescription(indicatorDescription);
+
+            if (indicator == null) {
+                indicator = new Indicator();
+                indicator.setDescription(indicatorDescription);
+                indicatorRepository.save(indicator);
+            }
+            indicators.add(indicator);
+        }
+
+        failureRepository.save(failure);
     }
 }

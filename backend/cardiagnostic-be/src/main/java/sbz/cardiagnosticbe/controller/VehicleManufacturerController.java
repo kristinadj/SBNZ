@@ -4,10 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import sbz.cardiagnosticbe.dto.vehicle.TVehicleManufacturer;
 import sbz.cardiagnosticbe.model.db.VehicleManufacturer;
 import sbz.cardiagnosticbe.service.VehicleManufacturerService;
@@ -47,5 +44,25 @@ public class VehicleManufacturerController {
     public ResponseEntity add(@RequestBody TVehicleManufacturer tVehicleManufacturer) {
         vehicleManufacturerService.add(tVehicleManufacturer);
         return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @RequestMapping(
+            value =" /{id}",
+            method = RequestMethod.PUT
+    )
+    @PreAuthorize("hasAuthority('EXPERT')")
+    public ResponseEntity update(@PathVariable Long id, @RequestParam String name) {
+        vehicleManufacturerService.updateName(id, name);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(
+            value =" /{id}",
+            method = RequestMethod.DELETE
+    )
+    @PreAuthorize("hasAuthority('EXPERT')")
+    public ResponseEntity delete(@PathVariable Long id) {
+        vehicleManufacturerService.remove(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
