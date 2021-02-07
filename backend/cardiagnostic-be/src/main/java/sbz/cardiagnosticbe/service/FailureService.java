@@ -219,7 +219,7 @@ public class FailureService {
 
             if (sortedFailures.getFailures().size() > 0) {
                 CurrentDetectedFailure detectedFailure = new CurrentDetectedFailure(sortedFailures.getFailures().get(0).getFailure(),
-                        sortedFailures.getFailures().get(0).getFailure().getRepairSteps().size());
+                        sortedFailures.getFailures().get(0).getFailure().getRepairSteps().size(), vehicleModel.getId(), year);
 
                 kieSession.insert(user);
                 kieSession.insert(detectedFailure);

@@ -18,6 +18,11 @@ public class Indicator {
     public Indicator() {
     }
 
+    public Indicator(Long id, String description) {
+        this.id = id;
+        this.description = description;
+    }
+
     public Long getId() {
         return id;
     }

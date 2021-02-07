@@ -14,7 +14,9 @@ rule "Check failure history - not all steps applied"
     when
         $currDf: CurrentDetectedFailure(
             $currDetectedFailureId: failure.id,
-            $maxStepsCnt: nextRepairStep
+            $maxStepsCnt: nextRepairStep,
+            $vehicleModelId: vehicleModelId,
+            $vehicleProductionYear: vehicleProductionYear
         )
         eval($maxStepsCnt != 0)
         $u: User($detectedFailures: detectedFailures)
@@ -24,6 +26,10 @@ rule "Check failure history - not all steps applied"
                 $df.failure.(
                     id == $currDetectedFailureId
                 ),
+                $df.vehicleModel.(
+                    id == $vehicleModelId
+                ),
+                $df.vehicleProductionYear == vehicleProductionYear,
                 $df.timestamp.isAfter(LocalDateTime.now().minusMonths(1))
             ) from $detectedFailures,
             count($df)
@@ -42,7 +48,9 @@ rule "Check failure history - all steps already applied"
     when
         $currDf: CurrentDetectedFailure(
             $currDetectedFailureId: failure.id,
-            $maxStepsCnt: nextRepairStep
+            $maxStepsCnt: nextRepairStep,
+            $vehicleModelId: vehicleModelId,
+            $vehicleProductionYear: vehicleProductionYear
         )
         $u: User($detectedFailures: detectedFailures)
         Number($appliedSteps: intValue > 0) from accumulate(
@@ -51,6 +59,10 @@ rule "Check failure history - all steps already applied"
                 $df.failure.(
                     id == $currDetectedFailureId
                 ),
+                $df.vehicleModel.(
+                    id == $vehicleModelId
+                ),
+                $df.vehicleProductionYear == vehicleProductionYear,
                 $df.timestamp.isAfter(LocalDateTime.now().minusMonths(1))
             ) from $detectedFailures,
             count($df)
@@ -67,7 +79,9 @@ rule "Check failure history - first time appearing"
     agenda-group "failure-history"
     when
         $currDf: CurrentDetectedFailure(
-            $currDetectedFailureId: failure.id
+            $currDetectedFailureId: failure.id,
+            $vehicleModelId: vehicleModelId,
+            $vehicleProductionYear: vehicleProductionYear
         )
         $u: User(
             $detectedFailures: detectedFailures
@@ -78,6 +92,10 @@ rule "Check failure history - first time appearing"
                 $df.failure.(
                     id == $currDetectedFailureId
                 ),
+                $df.vehicleModel.(
+                    id == $vehicleModelId
+                ),
+                $df.vehicleProductionYear == vehicleProductionYear,
                 $df.timestamp.isAfter(LocalDateTime.now().minusMonths(1))
             ) from $detectedFailures,
             count($df)

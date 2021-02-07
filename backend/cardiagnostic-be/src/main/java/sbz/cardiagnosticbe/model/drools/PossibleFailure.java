@@ -6,6 +6,8 @@ public class PossibleFailure {
     private Failure failure;
     private int matchingIndicatorsNumber;
 
+    public PossibleFailure() {}
+
     public PossibleFailure(Failure failure, int matchingIndicatorsNumber) {
         this.failure = failure;
         this.matchingIndicatorsNumber = matchingIndicatorsNumber;

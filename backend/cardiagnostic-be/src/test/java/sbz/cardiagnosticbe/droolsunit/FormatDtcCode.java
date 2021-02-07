@@ -1,41 +1,52 @@
 package sbz.cardiagnosticbe.droolsunit;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
+import org.springframework.test.context.junit4.SpringRunner;
+import sbz.cardiagnosticbe.dto.failure.TNewFailure;
+import sbz.cardiagnosticbe.model.enums.VehiclePart;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@RunWith(SpringRunner.class)
 public class FormatDtcCode {
 
     private static KieContainer kieContainer;
 
     private static final String agenda = "add-failure";
 
-    @BeforeAll
-    static void createContainer() {
+    @Before
+    public void setup() {
         KieServices kieServices = KieServices.Factory.get();
         kieContainer = kieServices.newKieContainer(kieServices.newReleaseId("sbnz.integracija", "drools-spring-kjar", "0.0.1-SNAPSHOT"));
     }
 
-    /*
     @Test
     public void test_DtcCodesP0() {
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.getAgenda().getAgendaGroup(agenda).setFocus();
 
-        HashSet<String> indicators = new HashSet<>();
+        List<String> indicators = new ArrayList<>();
         indicators.add("Test indicator 1");
         indicators.add("Test indicator 2");
 
-        TFailure dto = new TFailure();
+        List<String> repairSteps = new ArrayList<>();
+        repairSteps.add("Step 1");
+
+        TNewFailure dto = new TNewFailure();
         dto.setVehiclePart(VehiclePart.POWERTRAIN);
         dto.setManufacturerSpecific(false);
         dto.setVehicleSubsystem(0);
         dto.setIndicators(indicators);
-        dto.setCarState(CarState.MOVEMENT.ordinal());
         dto.setFailureName("Test failure");
-        dto.setRepairSolution("Repair solution");
+        dto.setRepairSteps(repairSteps);
 
         kieSession.insert(dto);
         kieSession.fireAllRules();
@@ -48,18 +59,20 @@ public class FormatDtcCode {
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.getAgenda().getAgendaGroup(agenda).setFocus();
 
-        HashSet<String> indicators = new HashSet<>();
+        List<String> indicators = new ArrayList<>();
         indicators.add("Test indicator 1");
         indicators.add("Test indicator 2");
 
-        TFailure dto = new TFailure();
+        List<String> repairSteps = new ArrayList<>();
+        repairSteps.add("Step 1");
+
+        TNewFailure dto = new TNewFailure();
         dto.setVehiclePart(VehiclePart.POWERTRAIN);
         dto.setManufacturerSpecific(true);
         dto.setVehicleSubsystem(0);
         dto.setIndicators(indicators);
-        dto.setCarState(CarState.MOVEMENT.ordinal());
         dto.setFailureName("Test failure");
-        dto.setRepairSolution("Repair solution");
+        dto.setRepairSteps(repairSteps);
 
         kieSession.insert(dto);
         kieSession.fireAllRules();
@@ -72,18 +85,20 @@ public class FormatDtcCode {
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.getAgenda().getAgendaGroup(agenda).setFocus();
 
-        HashSet<String> indicators = new HashSet<>();
+        List<String> indicators = new ArrayList<>();
         indicators.add("Test indicator 1");
         indicators.add("Test indicator 2");
 
-        TFailure dto = new TFailure();
+        List<String> repairSteps = new ArrayList<>();
+        repairSteps.add("Step 1");
+
+        TNewFailure dto = new TNewFailure();
         dto.setVehiclePart(VehiclePart.BODY);
         dto.setManufacturerSpecific(false);
         dto.setVehicleSubsystem(0);
         dto.setIndicators(indicators);
-        dto.setCarState(CarState.MOVEMENT.ordinal());
         dto.setFailureName("Test failure");
-        dto.setRepairSolution("Repair solution");
+        dto.setRepairSteps(repairSteps);
 
         kieSession.insert(dto);
         kieSession.fireAllRules();
@@ -96,18 +111,20 @@ public class FormatDtcCode {
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.getAgenda().getAgendaGroup(agenda).setFocus();
 
-        HashSet<String> indicators = new HashSet<>();
+        List<String> indicators = new ArrayList<>();
         indicators.add("Test indicator 1");
         indicators.add("Test indicator 2");
 
-        TFailure dto = new TFailure();
+        List<String> repairSteps = new ArrayList<>();
+        repairSteps.add("Step 1");
+
+        TNewFailure dto = new TNewFailure();
         dto.setVehiclePart(VehiclePart.BODY);
         dto.setManufacturerSpecific(true);
         dto.setVehicleSubsystem(0);
         dto.setIndicators(indicators);
-        dto.setCarState(CarState.MOVEMENT.ordinal());
         dto.setFailureName("Test failure");
-        dto.setRepairSolution("Repair solution");
+        dto.setRepairSteps(repairSteps);
 
         kieSession.insert(dto);
         kieSession.fireAllRules();
@@ -120,18 +137,20 @@ public class FormatDtcCode {
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.getAgenda().getAgendaGroup(agenda).setFocus();
 
-        HashSet<String> indicators = new HashSet<>();
+        List<String> indicators = new ArrayList<>();
         indicators.add("Test indicator 1");
         indicators.add("Test indicator 2");
 
-        TFailure dto = new TFailure();
+        List<String> repairSteps = new ArrayList<>();
+        repairSteps.add("Step 1");
+
+        TNewFailure dto = new TNewFailure();
         dto.setVehiclePart(VehiclePart.CHASIS);
         dto.setManufacturerSpecific(false);
         dto.setVehicleSubsystem(0);
         dto.setIndicators(indicators);
-        dto.setCarState(CarState.MOVEMENT.ordinal());
         dto.setFailureName("Test failure");
-        dto.setRepairSolution("Repair solution");
+        dto.setRepairSteps(repairSteps);
 
         kieSession.insert(dto);
         kieSession.fireAllRules();
@@ -144,18 +163,20 @@ public class FormatDtcCode {
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.getAgenda().getAgendaGroup(agenda).setFocus();
 
-        HashSet<String> indicators = new HashSet<>();
+        List<String> indicators = new ArrayList<>();
         indicators.add("Test indicator 1");
         indicators.add("Test indicator 2");
 
-        TFailure dto = new TFailure();
+        List<String> repairSteps = new ArrayList<>();
+        repairSteps.add("Step 1");
+
+        TNewFailure dto = new TNewFailure();
         dto.setVehiclePart(VehiclePart.CHASIS);
         dto.setManufacturerSpecific(true);
         dto.setVehicleSubsystem(0);
         dto.setIndicators(indicators);
-        dto.setCarState(CarState.MOVEMENT.ordinal());
         dto.setFailureName("Test failure");
-        dto.setRepairSolution("Repair solution");
+        dto.setRepairSteps(repairSteps);
 
         kieSession.insert(dto);
         kieSession.fireAllRules();
@@ -168,18 +189,20 @@ public class FormatDtcCode {
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.getAgenda().getAgendaGroup(agenda).setFocus();
 
-        HashSet<String> indicators = new HashSet<>();
+        List<String> indicators = new ArrayList<>();
         indicators.add("Test indicator 1");
         indicators.add("Test indicator 2");
 
-        TFailure dto = new TFailure();
+        List<String> repairSteps = new ArrayList<>();
+        repairSteps.add("Step 1");
+
+        TNewFailure dto = new TNewFailure();
         dto.setVehiclePart(VehiclePart.NETWORK_VEHICLE_INTEGRATION);
         dto.setManufacturerSpecific(false);
         dto.setVehicleSubsystem(0);
         dto.setIndicators(indicators);
-        dto.setCarState(CarState.MOVEMENT.ordinal());
         dto.setFailureName("Test failure");
-        dto.setRepairSolution("Repair solution");
+        dto.setRepairSteps(repairSteps);
 
         kieSession.insert(dto);
         kieSession.fireAllRules();
@@ -192,23 +215,24 @@ public class FormatDtcCode {
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.getAgenda().getAgendaGroup(agenda).setFocus();
 
-        HashSet<String> indicators = new HashSet<>();
+        List<String> indicators = new ArrayList<>();
         indicators.add("Test indicator 1");
         indicators.add("Test indicator 2");
 
-        TFailure dto = new TFailure();
+        List<String> repairSteps = new ArrayList<>();
+        repairSteps.add("Step 1");
+
+        TNewFailure dto = new TNewFailure();
         dto.setVehiclePart(VehiclePart.NETWORK_VEHICLE_INTEGRATION);
         dto.setManufacturerSpecific(true);
         dto.setVehicleSubsystem(0);
         dto.setIndicators(indicators);
-        dto.setCarState(CarState.MOVEMENT.ordinal());
         dto.setFailureName("Test failure");
-        dto.setRepairSolution("Repair solution");
+        dto.setRepairSteps(repairSteps);
 
         kieSession.insert(dto);
         kieSession.fireAllRules();
 
         assertEquals("U10", dto.getDtcCode());
     }
-     */
 }
