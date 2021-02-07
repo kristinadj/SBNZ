@@ -38,7 +38,7 @@
           </li>
           <li class="nav-item">
             <router-link v-if="!isAdmin" to="/report-failure" class="nav-link"
-              >Report failure</router-link
+              >Detect failure</router-link
             >
           </li>
           <li class="nav-item">
